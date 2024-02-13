@@ -1,0 +1,239 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Code Editor</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #F5F5F5;
+        }
+
+        .ribbon {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #673AB7;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            z-index: 9999;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .gap {
+            width: 30px;
+        }
+
+        #clearButton,
+        #runButton,
+        #optionButton,
+        #downloadButton,
+        #openButton,
+        #filenameInput {
+            margin-right: 20px;
+            padding: 32px 48px;
+            font-size: 28px;
+            border: none;
+            border-radius: 4px;
+            background-color: #9575CD;
+            color: #FFF;
+            cursor: pointer;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            font-family: "Times New Roman", Times, serif;
+        }
+
+        #runButton {
+            background-color: #FF4081;
+        }
+
+        #optionButton,
+        #openButton {
+            background-color: #673AB7;
+            border-radius: 4px;
+            width: auto;
+            height: auto;
+            font-size: 28px;
+            line-height: 1;
+            padding: 10px 20px;
+        }
+
+        #clearButton:hover,
+        #runButton:hover,
+        #optionButton:hover,
+        #downloadButton:hover,
+        #openButton {
+            margin-right: 20px;
+            padding: 32px 48px;
+            font-size: 28px;
+            border: none;
+            border-radius: 4px;
+            background-color: #9575CD;
+            color: #FFF;
+            cursor: pointer;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            font-family: "Times New Roman", Times, serif;
+        }
+
+        #editor {
+            margin-top: 120px;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+        }
+
+        #codeContainer {
+            width: 80%;
+            overflow-x: auto;
+            overflow-y: auto;
+            max-height: calc(100vh - 400px);
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        #codeInput {
+            width: 100%;
+            min-height: 90000px;
+            padding: 20px;
+            font-size: 28px; /* Adjust the text size as per your preference */
+            resize: none;
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+            margin-left: auto;
+            background-color: #673AB7;
+            border-radius: 50%;
+            width: 72px;
+            height: 72px;
+            font-size: 48px;
+            line-height: 1;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            right: 0;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        .popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #FFF;
+            border: 1px solid #CCC;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            z-index: 99999;
+            width: 400px;
+            display: none;
+        }
+
+        .popup-buttons {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .popup-button {
+            margin: 10px;
+            padding: 16px 24px;
+            font-size: 20px;
+            border: none;
+            border-radius: 4px;
+            background-color: #9575CD;
+            color: #FFF;
+            cursor: pointer;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            font-family: "Times New Roman", Times, serif;
+        }
+
+        .popup-button:hover {
+            background-color: #7E57C2;
+        }
+
+        .popup-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 20px;
+            color: #CCC;
+            cursor: pointer;
+        }
+
+        .popup-close:hover {
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="ribbon">
+        <button id="clearButton">Clear All</button>
+        <div class="gap"></div>
+        <button id="runButton">Run</button>
+        <input type="text" id="filenameInput" value="webpage" placeholder="Filename" onclick="this.select()" onmouseup="return false;">
+        <div class="dropdown">
+            <button id="optionButton">&#8942;</button>
+            <div class="dropdown-content">
+                <button id="downloadButton">Download</button>
+                <button id="openButton">._Open  . . .</button>
+            </div>
+        </div>
+        <div class="gap"></div>
+    </div>
+
+    <div id="editor">
+        <div id="codeContainer">
+            <textarea id="codeInput" placeholder="Enter your code here..."></textarea>
+        </div>
+    </div>
+
+    <script>
+        // Clear button
+        document.getElementById('clearButton').addEventListener('click', function() {
+            document.getElementById('codeInput').value = '';
+        });
+
+        // Run button
+        document.getElementById('runButton').addEventListener('click', function() {
+            var code = document.getElementById('codeInput').value;
+            var newWindow = window.open();
+            newWindow.document.write(code);
+            newWindow.document.close();
+        });
+
+
+
+
+        // Download button
+        document.getElementById('downloadButton').addEventListener('click', function() {
+            var code = document.getElementById('codeInput').value;
+            var filename = document.getElementById('filenameInput').value + '.html';
+
+            var element = document.createElement('a');
+            element.setAttribute('href', 'data:text/html;charset=utf-8,' + encodeURIComponent(code));
+            element.setAttribute('download', filename);
+
+            element.style.display = 'none';
+            document.body.appendChild(element);
+
+            element.click();
+
+            document.body.removeChild(element);
+        });
+    </script>
+</body>
+</html>
