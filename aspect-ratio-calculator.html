@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aspect Ratio Calculator</title>
+    <style>
+/* General Styles */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f8f9fb;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px;
+    margin: 0;
+}
+
+/* Calculator Container */
+.calculator {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 25px;
+    width: 400px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+h1 {
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 20px;
+    text-align: left;
+    font-weight: 500;
+}
+
+/* Form Layout */
+.input-fields,
+.result-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.input-fields label,
+.result-section p {
+    font-size: 14px;
+    color: #666;
+    text-align: left;
+    margin-right: 10px;
+    flex: 1;
+}
+
+input {
+    padding: 10px;
+    width: 100px;
+    font-size: 14px;
+    border: 1px solid #d0d0d0;
+    border-radius: 6px;
+    background-color: #f9f9f9;
+    text-align: right;
+    color: #333;
+    transition: border-color 0.3s;
+}
+
+input:focus {
+    outline: none;
+    border-color: #5c6bc0;
+    background-color: #ffffff;
+}
+
+/* Adjusted spacing for input fields */
+.result-section input {
+    width: 110px;
+}
+
+span {
+    font-size: 16px;
+    color: #333;
+    margin: 0 8px;
+}
+
+/* Align inputs perfectly within sections */
+.result-section {
+    justify-content: space-evenly;
+}
+
+/* Calculate Button */
+button {
+    background-color: #5c6bc0;
+    color: white;
+    padding: 12px;
+    width: 100%;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #3f51b5;
+}
+
+/* Adjust input box sizes for even spacing */
+.result-section input {
+    margin-left: 0;
+    width: 100px;
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+    .calculator {
+        width: 100%;
+        padding: 20px;
+    }
+
+    input {
+        width: 100px;
+    }
+}
+
+</style>
+</head>
+<body>
+    <div class="calculator">
+        <h1>Aspect Ratio Calculator</h1>
+
+        <div class="input-fields">
+            <label for="width">Width</label>
+            <input type="number" id="width" placeholder="Width">
+        </div>
+        
+        <div class="input-fields">
+            <label for="height">Height</label>
+            <input type="number" id="height" placeholder="Height">
+        </div>
+
+        <button onclick="calculateAspectRatio()">Calculate Aspect Ratio</button>
+
+        <div class="result-section">
+            <p>Aspect Ratio</p>
+            <input type="number" id="aspectWidth" oninput="updateDimensionsFromAspectRatio()" value="1">
+            <span>&nbsp;:&nbsp;</span>
+
+            <input type="number" id="aspectHeight" oninput="updateDimensionsFromAspectRatio()" value="1">
+        </div>
+
+        <div class="result-section">
+            <p>Dimensions</p>
+            <input type="number" id="outputWidth" oninput="updateOtherDimension('width')" placeholder="Width">
+            <span>x</span>
+            <input type="number" id="outputHeight" oninput="updateOtherDimension('height')" placeholder="Height">
+        </div>
+    </div>
+
+    <script>
+function calculateAspectRatio() {
+    let width = parseFloat(document.getElementById('width').value);
+    let height = parseFloat(document.getElementById('height').value);
+
+    if (width && height) {
+        let gcd = greatestCommonDivisor(width, height);
+        document.getElementById('aspectWidth').value = width / gcd;
+        document.getElementById('aspectHeight').value = height / gcd;
+        document.getElementById('outputWidth').value = width;
+        document.getElementById('outputHeight').value = height;
+    }
+}
+
+function updateDimensionsFromAspectRatio() {
+    let aspectWidth = parseFloat(document.getElementById('aspectWidth').value);
+    let aspectHeight = parseFloat(document.getElementById('aspectHeight').value);
+    let outputWidth = parseFloat(document.getElementById('outputWidth').value);
+
+    if (aspectWidth && aspectHeight && outputWidth) {
+        let newHeight = (outputWidth * aspectHeight) / aspectWidth;
+        document.getElementById('outputHeight').value = Math.round(newHeight);
+    }
+}
+
+function updateOtherDimension(changedDimension) {
+    let aspectWidth = parseFloat(document.getElementById('aspectWidth').value);
+    let aspectHeight = parseFloat(document.getElementById('aspectHeight').value);
+    let outputWidth = parseFloat(document.getElementById('outputWidth').value);
+    let outputHeight = parseFloat(document.getElementById('outputHeight').value);
+
+    if (aspectWidth && aspectHeight) {
+        if (changedDimension === 'width' && outputWidth) {
+            let newHeight = (outputWidth * aspectHeight) / aspectWidth;
+            document.getElementById('outputHeight').value = Math.round(newHeight);
+        } else if (changedDimension === 'height' && outputHeight) {
+            let newWidth = (outputHeight * aspectWidth) / aspectHeight;
+            document.getElementById('outputWidth').value = Math.round(newWidth);
+        }
+    }
+}
+
+function greatestCommonDivisor(a, b) {
+    if (!b) {
+        return a;
+    }
+    return greatestCommonDivisor(b, a % b);
+}
+
+</script>
+</body>
+</html>
