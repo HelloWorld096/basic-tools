@@ -17,9 +17,9 @@
       padding: 0 20px 20px;
       display: flex;
       justify-content: center;
-      align-items: flex-start; 
+      align-items: flex-start;
       flex-direction: column;
-     user-select: none;  
+     user-select: none;
   -webkit-user-select: none;
     }
 
@@ -59,7 +59,7 @@ button:focus, a:focus, .card:focus {
       border-radius: 8px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       padding: 20px;
-      width: 100%;
+      width: 100%; /* 100% width for mobile */
       max-width: 340px;
       transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
       cursor: pointer;
@@ -191,7 +191,6 @@ async function fetchFiles() {
 
     let htmlFilesFound = false;
 
- without case sensitivity
     data.forEach(file => {
       if (file.name.endsWith('.html') && !excludeFiles.some(excludedFile => excludedFile.toLowerCase() === file.name.toLowerCase())) {
         htmlFilesFound = true;
