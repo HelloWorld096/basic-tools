@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Menu</title>
+  <title>Menu of Tools</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -26,22 +26,28 @@
 </head>
 <body>
 
-  <h1>Menu</h1>
+  <h1>Menu of Tools</h1>
   <div id="cards-container"></div>
 
   <script>
     const owner = 'helloworld096';
     const repo = 'Basic';
-    const branch = 'gh-pages'; // Change if the branch is different
+    const branch = 'gh-pages'; // Your GitHub Pages branch is likely 'gh-pages'
 
     const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/?ref=${branch}`;
 
+    // Fetch the list of HTML files from the repository
     async function fetchFiles() {
       try {
         const response = await fetch(apiUrl);
+        if (!response.ok) {
+          throw new Error('Error fetching repo contents');
+        }
+
         const files = await response.json();
-        
-        // Filter HTML files
+        console.log('Files fetched:', files);
+
+        // Filter to include only HTML files
         const htmlFiles = files.filter(file => file.name.endsWith('.html'));
 
         // Fetch titles and create cards
@@ -53,24 +59,31 @@
       }
     }
 
+    // Fetch the title from the HTML file
     async function fetchFileTitle(fileName) {
       try {
         const fileUrl = `https://${owner}.github.io/${repo}/${fileName}`;
         const response = await fetch(fileUrl);
-        const text = await response.text();
+        if (!response.ok) {
+          throw new Error(`Error fetching ${fileName}`);
+        }
 
-        // Extract title from the HTML content
+        const text = await response.text();
+        console.log(`Content of ${fileName}:`, text);
+
+        // Extract the title from the HTML content
         const parser = new DOMParser();
         const doc = parser.parseFromString(text, 'text/html');
-        const title = doc.querySelector('title').innerText || fileName;
+        const title = doc.querySelector('title') ? doc.querySelector('title').innerText : fileName;
 
-        // Create and display card
+        // Create a card with the title and the file name
         createCard(fileName, title);
       } catch (error) {
         console.error(`Error fetching title for ${fileName}:`, error);
       }
     }
 
+    // Create and display a card for each HTML file
     function createCard(fileName, title) {
       const container = document.getElementById('cards-container');
 
