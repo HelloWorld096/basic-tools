@@ -1,1 +1,203 @@
-...
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>☰ </title>
+ <style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@500&display=swap');
+
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300&display=swap');
+
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@500&display=swap'););
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #F3F4F6;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    h1 {
+     font-family: 'Kanit';
+      text-align: center;
+      margin-bottom: 10px;
+      color: #333333;
+      font-size: 2.5rem;
+      font-weight: 500;
+    }
+
+    .card-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .card {
+      display: inline-block;
+      background-color: #FFFFFF;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      width: 340px;
+      transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+      cursor: pointer;
+      color: #333333;
+      border: 1px solid #E0E0E0;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-title {
+      font-family: Syne;
+      font-size: 1.4em;
+      margin-bottom: 8px;
+      color: #2D3748;
+      font-weight: 500;
+    }
+
+    .separator {
+      width: 90%;
+      height: 4px;
+      background-color: #3182CE;
+      margin: 10px 0 15px;
+      border-radius: 2px;
+    }
+
+    .description {
+      font-family: "Montserrat", system-ui;
+      font-weight: 300;
+      font-size: 1em;
+      color: #555;
+      margin-bottom: 20px;
+      line-height: 1.6;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-height: 4.8em;
+    }
+
+    .file-name {
+      font-family: monospace;
+      font-size: 0.9em;
+      color: #A0AEC0;
+      text-align: right;
+      font-style: ;
+    }
+
+    @media (max-width: 768px) {
+      .card {
+        width: 100%;
+        margin: 10px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Repository Menu</h1>
+  <div class="card-container" id="card-container"></div>
+
+  <script>
+
+    const owner = 'helloworld096';
+    const repo = 'Basic';
+    const branch = 'main';
+
+    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/?ref=${branch}`;
+
+    async function fetchFiles() {
+      try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) {
+          throw new Error('Error fetching repo contents');
+        }
+
+        const files = await response.json();
+        const htmlFiles = files.filter(file => file.name.endsWith('.html') && file.name !== 'index.html');
+
+        htmlFiles.forEach(file => {
+          fetchFileDetails(file.name);
+        });
+      } catch (error) {
+        console.error('Error fetching files:', error);
+      }
+    }
+
+    async function fetchFileDetails(fileName) {
+      try {
+        const fileUrl = `https://${owner}.github.io/${repo}/${fileName}`;
+        const response = await fetch(fileUrl);
+        if (!response.ok) {
+          throw new Error(`Error fetching ${fileName}`);
+        }
+
+        const text = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(text, 'text/html');
+
+        const title = doc.querySelector('title') ? doc.querySelector('title').innerText : fileName;
+        const description = doc.querySelector('meta[name="description"]') ? doc.querySelector('meta[name="description"]').content : 'No description available !!';
+
+        createCard(fileName, title, description, fileUrl);
+      } catch (error) {
+        console.error(`Error fetching details for ${fileName}:`, error);
+      }
+    }
+
+    function createCard(fileName, title, description, fileUrl) {
+      const container = document.getElementById('card-container');
+
+      const card = document.createElement('div');
+      card.classList.add('card');
+
+      const link = document.createElement('a');
+      link.href = fileUrl;
+      link.classList.add('card-link');
+      link.target = '_blank';
+
+      link.addEventListener('click', function(e) {
+        e.stopPropagation();
+      });
+
+      card.addEventListener('click', () => {
+        window.open(fileUrl, '_blank');
+      });
+
+      const titleElement = document.createElement('div');
+      titleElement.innerText = title;
+      titleElement.classList.add('card-title');
+
+      const separatorElement = document.createElement('div');
+      separatorElement.classList.add('separator');
+
+      const descriptionElement = document.createElement('div');
+      descriptionElement.innerText = description;
+      descriptionElement.classList.add('description');
+
+      const fileNameElement = document.createElement('div');
+      fileNameElement.innerText = fileName;
+      fileNameElement.classList.add('file-name');
+
+      card.appendChild(titleElement);
+      card.appendChild(separatorElement);
+      card.appendChild(descriptionElement);
+      card.appendChild(fileNameElement);
+      container.appendChild(card);
+    }
+
+    fetchFiles();
+  </script>
+</body>
+</html>
