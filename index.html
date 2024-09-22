@@ -234,32 +234,36 @@ async function fetchFiles() {
     }
 
     function createCard(fileName, title, description, fileUrl) {
-      const container = document.getElementById('card-container');
+  const container = document.getElementById('card-container');
 
-      const card = document.createElement('div');
-      card.classList.add('card');
+  const card = document.createElement('div');
+  card.classList.add('card');
+  
+  card.addEventListener('click', () => {
+    window.open(fileUrl, '_blank');
+  });
 
-      const titleElement = document.createElement('div');
-      titleElement.innerText = title;
-      titleElement.classList.add('card-title');
+  const titleElement = document.createElement('div');
+  titleElement.innerText = title;
+  titleElement.classList.add('card-title');
 
-      const separatorElement = document.createElement('div');
-      separatorElement.classList.add('separator');
+  const separatorElement = document.createElement('div');
+  separatorElement.classList.add('separator');
 
-      const descriptionElement = document.createElement('div');
-      descriptionElement.innerText = description;
-      descriptionElement.classList.add('description');
+  const descriptionElement = document.createElement('div');
+  descriptionElement.innerText = description;
+  descriptionElement.classList.add('description');
 
-      const fileNameElement = document.createElement('div');
-      fileNameElement.innerText = fileName;
-      fileNameElement.classList.add('file-name');
+  const fileNameElement = document.createElement('div');
+  fileNameElement.innerText = fileName;
+  fileNameElement.classList.add('file-name');
 
-      card.appendChild(titleElement);
-      card.appendChild(separatorElement);
-      card.appendChild(descriptionElement);
-      card.appendChild(fileNameElement);
-      container.appendChild(card);
-    }
+  card.appendChild(titleElement);
+  card.appendChild(separatorElement);
+  card.appendChild(descriptionElement);
+  card.appendChild(fileNameElement);
+  container.appendChild(card);
+}
 
     fetchFiles();
 
