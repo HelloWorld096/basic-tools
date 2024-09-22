@@ -1,2 +1,2 @@
 access all pages from here 
-https://helloworld096.github.io/Basic-Tools/
+https://helloworld096.github.io/basic-tools/
