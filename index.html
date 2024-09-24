@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,7 +15,15 @@
 @font-face {
   font-family: 'Syne';
   font-weight: 500;
-  font-display: swap;
+  font-d
+#loading-spinner {
+  font-family: sans-serif;
+  fint-weight: 300;
+  color: #333;
+  font-size: 1.2rem;
+  margin: 20px 0;
+}
+isplay: swap;
   src: url(https://fonts.gstatic.com/s/syne/v22/8vIS7w4qzmVxsWxjBZRjr0FKM_0KuQ6jTY_vCk5Y.woff2) format('woff2');
  }
 @font-face {
@@ -39,7 +48,7 @@
     h1 {
   font-family: 'Kanit';
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 2px;
   color: #333333;
   font-size: 2.5rem;
   font-weight: 500;
@@ -102,20 +111,30 @@ button:focus, a:focus, .card:focus {
       border-radius: 2px;
     }
 
-    .description {
-      font-family: "Montserrat", system-ui;
-      font-weight: 300;
-      font-size: 1rem;
-      color: #555;
-      margin-bottom: 20px;
-      line-height: 1.6;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      min-height: 4.8em;
-    }
+.description {
+  font-family: "Montserrat", system-ui;
+  font-weight: 300;
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 20px;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 3; /* Limit to 3 lines */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: max-height 0.6s ease, -webkit-line-clamp 0.3s ease; /* Smooth expansion */
+  min-height: 4.8em; /* Force space for 3 lines */
+  max-height: 4.8em; /* Restrict height initially */
+}
+
+.card:hover .description {
+  -webkit-line-clamp: unset; /* Remove line clamp on hover */
+  max-height: 100%; /* Expand fully */
+  min-height: auto; /* Let it grow dynamically */
+}
+
+
 
     .file-name {
       font-family: monospace;
@@ -125,10 +144,12 @@ button:focus, a:focus, .card:focus {
     }
 
 #loading-spinner {
-  font-family: 'Montserrat', sans-serif;
+  font-family: sans-serif;
+  font-weight: 300;
   color: #333;
   font-size: 1.2rem;
-  margin: 20px 0;
+  margin-left: 15px;
+  margin-top: 20px;
 }
 
 #error-message {
@@ -167,16 +188,16 @@ width: 100%;
 <body>
 
   <h1>Repository Menu</h1>
-  <div id="loading-spinner">Loading files...</div>
+  <div id="loading-spinner">Loading files . . .</div>
   <div id="error-message"></div>
   <div class="card-container" id="card-container"></div>
 
   <script>
 
       const owner = 'helloworld096';
-const repo = 'basic-tools';
-const branch = 'main';
-const excludeFiles = ['index.html']; // Add more file names as needed
+      const repo = 'basic-tools';
+      const branch = 'main';
+      const excludeFiles = ['index.html']; // Add more file names as needed
 
 const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/?ref=${branch}`;
 
@@ -225,26 +246,36 @@ async function fetchFiles() {
   }
 }
 
-    async function fetchFileDetails(fileName) {
-      try {
-        const fileUrl = `https://${owner}.github.io/${repo}/${fileName}`;
-        const response = await fetch(fileUrl);
-        if (!response.ok) {
-          throw new Error(`Error fetching ${fileName}`);
-        }
-
-        const text = await response.text();
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(text, 'text/html');
-
-        const title = doc.querySelector('title') ? doc.querySelector('title').innerText : fileName;
-        const description = doc.querySelector('meta[name="description"]') ? doc.querySelector('meta[name="description"]').content : 'No description available.';
-
-        createCard(fileName, title, description, fileUrl);
-      } catch (error) {
-        console.error(`Error fetching details for ${fileName}:`, error);
-      }
+  async function fetchFileDetails(fileName) {
+  try {
+    // Construct API URL to fetch raw content from GitHub repo
+    const fileUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${fileName}`;
+    
+    const response = await fetch(fileUrl);
+    if (!response.ok) {
+      throw new Error(`Error fetching ${fileName}`);
     }
+
+    const text = await response.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(text, 'text/html');
+
+    const title = doc.querySelector('title') ? doc.querySelector('title').innerText : fileName;
+
+    // Properly extract the meta description if it exists
+    const descriptionTag = doc.querySelector('meta[name="description"]');
+    const description = (descriptionTag && descriptionTag.content.trim()) 
+                        ? descriptionTag.content.trim() 
+                        : 'No description available.\n\n\n';
+
+    console.log(`File: ${fileName}, Title: ${title}, Description: ${description}`);
+
+    createCard(fileName, title, description, fileUrl);
+  } catch (error) {
+    console.error(`Error fetching details for ${fileName}:`, error);
+  }
+}
+
 
     function createCard(fileName, title, description, fileUrl) {
   const container = document.getElementById('card-container');
@@ -252,8 +283,11 @@ async function fetchFiles() {
   const card = document.createElement('div');
   card.classList.add('card');
   
+  // Use the GitHub Pages URL for opening the file when the card is clicked
+  const githubPagesUrl = `https://${owner}.github.io/${repo}/${fileName}`;
+  
   card.addEventListener('click', () => {
-    window.open(fileUrl, '_blank');
+    window.open(githubPagesUrl, '_blank'); // Open GitHub Pages URL instead of raw content
   });
 
   const titleElement = document.createElement('div');
@@ -278,7 +312,7 @@ async function fetchFiles() {
   container.appendChild(card);
 }
 
-    fetchFiles();
+fetchFiles();
 
 </script>
 
