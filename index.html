@@ -1,37 +1,29 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>☰</title>
-  
- <style>
-@font-face {
-  font-family: 'Kanit';
-  font-display: swap;
-  src: url(https://fonts.gstatic.com/s/kanit/v15/nKKU-Go6G5tXcr5mOBWnVaFrNlJz.woff2) format('woff2');
- }
-@font-face {
-  font-family: 'Syne';
-  font-weight: 500;
-  font-d
-#loading-spinner {
-  font-family: sans-serif;
-  fint-weight: 300;
-  color: #333;
-  font-size: 1.2rem;
-  margin: 20px 0;
-}
-isplay: swap;
-  src: url(https://fonts.gstatic.com/s/syne/v22/8vIS7w4qzmVxsWxjBZRjr0FKM_0KuQ6jTY_vCk5Y.woff2) format('woff2');
- }
-@font-face {
-  font-family: 'Montserrat';
-  font-weight: 300;
-  font-display: swap;
-  src: url(https://fonts.gstatic.com/s/montserrat/v26/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCs16Hw5aXp-obK4.woff2) format('woff2');
-}
+
+  <style>
+    @font-face {
+      font-family: 'Kanit';
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/kanit/v15/nKKU-Go6G5tXcr5mOBWnVaFrNlJz.woff2) format('woff2');
+    }
+    @font-face {
+      font-family: 'Syne';
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/syne/v22/8vIS7w4qzmVxsWxjBZRjr0FKM_0KuQ6jTY_vCk5Y.woff2) format('woff2');
+    }
+    @font-face {
+      font-family: 'Montserrat';
+      font-weight: 300;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/montserrat/v26/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCs16Hw5aXp-obK4.woff2) format('woff2');
+    }
+
     body {
       font-family: 'Roboto', sans-serif;
       background-color: #F3F4F6;
@@ -41,31 +33,31 @@ isplay: swap;
       justify-content: center;
       align-items: flex-start;
       flex-direction: column;
-     user-select: none;
-  -webkit-user-select: none;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
     h1 {
-  font-family: 'Kanit';
-  text-align: center;
-  margin-bottom: 2px;
-  color: #333333;
-  font-size: 2.5rem;
-  font-weight: 500;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-}
+      font-family: 'Kanit';
+      text-align: center;
+      margin-bottom: 2px;
+      color: #333333;
+      font-size: 2.5rem;
+      font-weight: 500;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
 
-button, a, .card {
-  -webkit-tap-highlight-color: transparent;
-  outline: none;
-}
+    button, a, .card {
+      -webkit-tap-highlight-color: transparent;
+      outline: none;
+    }
 
-button:focus, a:focus, .card:focus {
-  outline: none;
-  box-shadow: none;
-}
+    button:focus, a:focus, .card:focus {
+      outline: none;
+      box-shadow: none;
+    }
 
     .card-container {
       display: flex;
@@ -81,7 +73,7 @@ button:focus, a:focus, .card:focus {
       border-radius: 8px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       padding: 20px;
-      width: 100%; /* 100% width for mobile */
+      width: 100%;
       max-width: 340px;
       transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
       cursor: pointer;
@@ -106,35 +98,33 @@ button:focus, a:focus, .card:focus {
     .separator {
       width: 90%;
       height: 4px;
-      background-color: #3182CE;
+      background-color: #5c6bc0;
       margin: 10px 0 15px;
       border-radius: 2px;
     }
 
-.description {
-  font-family: "Montserrat", system-ui;
-  font-weight: 300;
-  font-size: 1rem;
-  color: #555;
-  margin-bottom: 20px;
-  line-height: 1.6;
-  display: -webkit-box;
-  -webkit-line-clamp: 3; /* Limit to 3 lines */
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition: max-height 0.6s ease, -webkit-line-clamp 0.3s ease; /* Smooth expansion */
-  min-height: 4.8em; /* Force space for 3 lines */
-  max-height: 4.8em; /* Restrict height initially */
-}
+    .description {
+      font-family: "Montserrat", system-ui;
+      font-weight: 300;
+      font-size: 1rem;
+      color: #555;
+      margin-bottom: 20px;
+      line-height: 1.6;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: max-height 0.6s ease, -webkit-line-clamp 0.3s ease;
+      min-height: 4.8em;
+      max-height: 4.8em;
+    }
 
-.card:hover .description {
-  -webkit-line-clamp: unset; /* Remove line clamp on hover */
-  max-height: 100%; /* Expand fully */
-  min-height: auto; /* Let it grow dynamically */
-}
-
-
+    .card:hover .description {
+      -webkit-line-clamp: unset;
+      max-height: 100%;
+      min-height: auto;
+    }
 
     .file-name {
       font-family: monospace;
@@ -143,25 +133,25 @@ button:focus, a:focus, .card:focus {
       text-align: right;
     }
 
-#loading-spinner {
-  font-family: sans-serif;
-  font-weight: 300;
-  color: #333;
-  font-size: 1.2rem;
-  margin-left: 15px;
-  margin-top: 20px;
-}
+    #loading-spinner {
+      font-family: sans-serif;
+      font-weight: 300;
+      color: #333;
+      font-size: 1.2rem;
+      margin-left: 15px;
+      margin-top: 20px;
+    }
 
-#error-message {
-  font-family: 'Montserrat', sans-serif;
-  color: red;
-  font-size: 1.2rem;
-  text-align: center;
-  display: flex; 
-justify-content: center; 
-width: 100%; 
-  margin: 20px 0;
-}
+    #error-message {
+      font-family: 'Montserrat', sans-serif;
+      color: red;
+      font-size: 1.2rem;
+      text-align: center;
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      margin: 20px 0;
+    }
 
     @media (min-width: 768px) {
       .card-container {
@@ -183,7 +173,6 @@ width: 100%;
       }
     }
   </style>
-
 </head>
 <body>
 
@@ -193,128 +182,120 @@ width: 100%;
   <div class="card-container" id="card-container"></div>
 
   <script>
+    const owner = 'HelloWorld096';
+    const repo = 'basic-tools';
+    const branch = 'main';
+    const excludeFiles = ['index.html']; // Add more file names as needed
 
-      const owner = 'helloworld096';
-      const repo = 'basic-tools';
-      const branch = 'main';
-      const excludeFiles = ['index.html']; // Add more file names as needed
+    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/?ref=${branch}`;
 
-const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/?ref=${branch}`;
+    async function fetchFiles() {
+      const loadingSpinner = document.getElementById('loading-spinner');
+      const errorMessage = document.getElementById('error-message');
+      const cardContainer = document.getElementById('card-container');
 
-async function fetchFiles() {
-  const loadingSpinner = document.getElementById('loading-spinner');
-  const errorMessage = document.getElementById('error-message');
-  const cardContainer = document.getElementById('card-container');
+      try {
+        const response = await fetch(apiUrl);
 
-  try {
-    const response = await fetch(apiUrl);
+        if (!response.ok) {
+          errorMessage.style.display = 'block';
+          errorMessage.innerText = `GitHub API error: ${response.status}`;
+          return;
+        }
 
-    if (!response.ok) {
-      errorMessage.style.display = 'block';
-      errorMessage.innerText = `GitHub API error: ${response.status}`;
-      return;
-    }
+        const data = await response.json();
 
-    const data = await response.json();
+        if (!Array.isArray(data) || data.length === 0) {
+          errorMessage.style.display = 'block';
+          errorMessage.innerText = "No files found in the repository.";
+          return;
+        }
 
-    if (!Array.isArray(data) || data.length === 0) {
-      errorMessage.style.display = 'block';
-      errorMessage.innerText = "No files found in the repository.";
-      return;
-    }
+        // Sort the files by their 'updated_at' field in descending order (newest to oldest)
+        const sortedData = data.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
 
-    let htmlFilesFound = false;
+        let htmlFilesFound = false;
 
-    data.forEach(file => {
-      if (file.name.endsWith('.html') && !excludeFiles.some(excludedFile => excludedFile.toLowerCase() === file.name.toLowerCase())) {
-        htmlFilesFound = true;
-        fetchFileDetails(file.name);
+        sortedData.forEach(file => {
+          if (file.name.endsWith('.html') && !excludeFiles.some(excludedFile => excludedFile.toLowerCase() === file.name.toLowerCase())) {
+            htmlFilesFound = true;
+            fetchFileDetails(file.name);
+          }
+        });
+
+        if (!htmlFilesFound) {
+          errorMessage.style.display = 'block';
+          errorMessage.innerText = "No HTML files found in the repository (excluding specified files).";
+        }
+
+      } catch (error) {
+        console.error('Error fetching files:', error);
+        errorMessage.style.display = 'block';
+        errorMessage.innerText = "Failed to load files. Please try again later.";
+      } finally {
+        loadingSpinner.style.display = 'none';
       }
-    });
-
-    if (!htmlFilesFound) {
-      errorMessage.style.display = 'block';
-      errorMessage.innerText = "No HTML files found in the repository (excluding specified files).";
     }
 
-  } catch (error) {
-    console.error('Error fetching files:', error);
-    errorMessage.style.display = 'block';
-    errorMessage.innerText = "Failed to load files. Please try again later.";
-  } finally {
-    loadingSpinner.style.display = 'none';
-  }
-}
+    async function fetchFileDetails(fileName) {
+      try {
+        const fileUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${fileName}`;
 
-  async function fetchFileDetails(fileName) {
-  try {
-    // Construct API URL to fetch raw content from GitHub repo
-    const fileUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${fileName}`;
-    
-    const response = await fetch(fileUrl);
-    if (!response.ok) {
-      throw new Error(`Error fetching ${fileName}`);
+        const response = await fetch(fileUrl);
+        if (!response.ok) {
+          throw new Error(`Error fetching ${fileName}`);
+        }
+
+        const text = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(text, 'text/html');
+
+        const title = doc.querySelector('title') ? doc.querySelector('title').innerText : fileName;
+        const descriptionTag = doc.querySelector('meta[name="description"]');
+        const description = (descriptionTag && descriptionTag.content.trim()) 
+          ? descriptionTag.content.trim() 
+          : 'No description available.\n\n\n';
+
+        createCard(fileName, title, description, fileUrl);
+      } catch (error) {
+        console.error(`Error fetching details for ${fileName}:`, error);
+      }
     }
-
-    const text = await response.text();
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(text, 'text/html');
-
-    const title = doc.querySelector('title') ? doc.querySelector('title').innerText : fileName;
-
-    // Properly extract the meta description if it exists
-    const descriptionTag = doc.querySelector('meta[name="description"]');
-    const description = (descriptionTag && descriptionTag.content.trim()) 
-                        ? descriptionTag.content.trim() 
-                        : 'No description available.\n\n\n';
-
-    console.log(`File: ${fileName}, Title: ${title}, Description: ${description}`);
-
-    createCard(fileName, title, description, fileUrl);
-  } catch (error) {
-    console.error(`Error fetching details for ${fileName}:`, error);
-  }
-}
-
 
     function createCard(fileName, title, description, fileUrl) {
-  const container = document.getElementById('card-container');
+      const container = document.getElementById('card-container');
+      const card = document.createElement('div');
+      card.classList.add('card');
 
-  const card = document.createElement('div');
-  card.classList.add('card');
-  
-  // Use the GitHub Pages URL for opening the file when the card is clicked
-  const githubPagesUrl = `https://${owner}.github.io/${repo}/${fileName}`;
-  
-  card.addEventListener('click', () => {
-    window.open(githubPagesUrl, '_blank'); // Open GitHub Pages URL instead of raw content
-  });
+      const githubPagesUrl = `https://${owner}.github.io/${repo}/${fileName}`;
+      card.addEventListener('click', () => {
+        window.open(githubPagesUrl, '_blank');
+      });
 
-  const titleElement = document.createElement('div');
-  titleElement.innerText = title;
-  titleElement.classList.add('card-title');
+      const titleElement = document.createElement('div');
+      titleElement.innerText = title;
+      titleElement.classList.add('card-title');
 
-  const separatorElement = document.createElement('div');
-  separatorElement.classList.add('separator');
+      const separatorElement = document.createElement('div');
+      separatorElement.classList.add('separator');
 
-  const descriptionElement = document.createElement('div');
-  descriptionElement.innerText = description;
-  descriptionElement.classList.add('description');
+      const descriptionElement = document.createElement('div');
+      descriptionElement.innerText = description;
+      descriptionElement.classList.add('description');
 
-  const fileNameElement = document.createElement('div');
-  fileNameElement.innerText = fileName;
-  fileNameElement.classList.add('file-name');
+      const fileNameElement = document.createElement('div');
+      fileNameElement.innerText = fileName;
+      fileNameElement.classList.add('file-name');
 
-  card.appendChild(titleElement);
-  card.appendChild(separatorElement);
-  card.appendChild(descriptionElement);
-  card.appendChild(fileNameElement);
-  container.appendChild(card);
-}
+      card.appendChild(titleElement);
+      card.appendChild(separatorElement);
+      card.appendChild(descriptionElement);
+      card.appendChild(fileNameElement);
+      container.appendChild(card);
+    }
 
-fetchFiles();
-
-</script>
+    fetchFiles();
+  </script>
 
 </body>
 </html>
