@@ -1,238 +1,399 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Code Editor</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0&icon_names=local_cafe" />
+    <title>Mobile Code Editor</title>
     <style>
-        body {
+        * {
             margin: 0;
             padding: 0;
-            font-family: Arial, sans-serif;
-            background-color: #F5F5F5;
+            box-sizing: border-box;
         }
-
-        .ribbon {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            background-color: #673AB7;
-            padding: 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            z-index: 9999;
-            display: flex;
-            justify-content: space-between;
+        html, body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100%;
+            background-color: #f4f4f9;
+            color: #333;
         }
+        
 
-        .gap {
-            width: 30px;
+       .tabs {
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
         }
-
-        #clearButton,
-        #runButton,
-        #optionButton,
-        #downloadButton,
-        #filenameInput {
-            margin-right: 20px;
-            padding: 32px 48px;
-            font-size: 28px;
-            border: none;
-            border-radius: 4px;
-            background-color: #9575CD;
-            color: #FFF;
-            cursor: pointer;
-            transition: background-color 0.3s ease, color 0.3s ease;
-            font-family: "Times New Roman", Times, serif;
-        }
-
-        #runButton {
-            background-color: #FF4081;
-        }
-
-        #optionButton,
-        #openButton {
-            background-color: #673AB7;
-            border-radius: 4px;
-            width: auto;
-            height: auto;
-            font-size: 28px;
-            line-height: 1;
-            padding: 10px 20px;
-        }
-
-        #clearButton:hover,
-        #runButton:hover,
-        #optionButton:hover,
-        #downloadButton:hover,
-        #openButton {
-            margin-right: 20px;
-            padding: 32px 48px;
-            font-size: 28px;
-            border: none;
-            border-radius: 4px;
-            background-color: #9575CD;
-            color: #FFF;
-            cursor: pointer;
-            transition: background-color 0.3s ease, color 0.3s ease;
-            font-family: "Times New Roman", Times, serif;
-        }
-
-        #editor {
-            margin-top: 120px;
-            padding: 40px;
-            display: flex;
-            justify-content: center;
-        }
-
-        #codeContainer {
-            width: 80%;
-            overflow-x: auto;
-            overflow-y: auto;
-            max-height: calc(100vh - 400px);
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-
-        #codeInput {
-            width: 100%;
-            min-height: 90000px;
-            padding: 20px;
-            font-size: 28px; /* Adjust the text size as per your preference */
-            resize: none;
-        }
-
-        .dropdown {
-            position: relative;
-            display: inline-block;
-            margin-left: auto;
-            background-color: #673AB7;
-            border-radius: 50%;
-            width: 72px;
-            height: 72px;
-            font-size: 48px;
-            line-height: 1;
-        }
-
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            background-color: #f9f9f9;
-            min-width: 160px;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-            z-index: 1;
-            right: 0;
-        }
-
-        .dropdown:hover .dropdown-content {
-            display: block;
-        }
-
-        .popup {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: #FFF;
-            border: 1px solid #CCC;
-            padding: 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            z-index: 99999;
-            width: 400px;
-            display: none;
-        }
-
-        .popup-buttons {
+        .wrapper {
             display: flex;
             flex-direction: column;
+            height: 100vh;
+        }
+        .editor-header {
+            display: flex;
+            justify-content: space-between;
             align-items: center;
+            padding: 10px;
+            background-color: #333;
+            color: white;
+            border-bottom: 1px solid #f4f4f9;
         }
-
-        .popup-button {
-            margin: 10px;
-            padding: 16px 24px;
-            font-size: 20px;
-            border: none;
+        .header-buttons button {
+            background-color: transparent;
+            color: white;
+            border: 1px solid #fff;
+            padding: 8px 16px;
+            margin: 0 5px;
             border-radius: 4px;
-            background-color: #9575CD;
-            color: #FFF;
             cursor: pointer;
-            transition: background-color 0.3s ease, color 0.3s ease;
-            font-family: "Times New Roman", Times, serif;
+            transition: background 0.3s;
+            font-weight: 500;
+            font-size: 1em;
         }
-
-        .popup-button:hover {
-            background-color: #7E57C2;
+        .header-buttons {
+            margin-left: .7em;
         }
-
-        .popup-close {
+        .menu-button {
+            background: transparent;
+            border: 0px solid white;
+            padding-left: 0.8em;
+            padding-right: 0.8em;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .menu {
+            display: none;
             position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 20px;
-            color: #CCC;
+            top: 100px;
+            right: 5px;
+            width: 10em;
+            background-color: white;
+            border: 1px solid #ccc;
+            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            z-index: 1000;
+            overflow: hidden;
+        }
+        .menu.active {
+            display: block;
+        }
+        .menu button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 10px;
+            border: none;
+            background-color: white;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .menu button:hover {
+            background-color: #f1f1f1;
+        }
+        #menuButton {
+            margin-right: 0px;
+        }
+        #htmlTab, #cssTab, #jsTab {
+            width: 33.33%;
+        }
+        .tabs {
+            display: flex;
+            justify-content: space-around;
+            background-color: #e0e0e0;
+            border-bottom: 0px solid #ccc;
+        }
+        .tabs span {
+            padding: 10px;
+            text-align: center;
             cursor: pointer;
         }
-
-        .popup-close:hover {
-            color: #555;
+        .tabs span.active {
+            background-color: #333;
+            color: white;
+            font-weight: bold;
         }
+        #htmlEditor, #cssEditor, #jsEditor {
+            height: 100%;
+        }
+        #htmlInput:focus, #cssInput:focus, #jsInput:focus {
+            outline: none;
+            border-color: #000;
+        }
+        .code-container {
+            flex-grow: 1;
+            padding: 10px;
+            overflow-y: auto;
+        }
+        .code-editor {
+            display: none;
+        }
+        .code-editor.active {
+            display: block;
+        }
+        textarea {
+            width: 100%;
+            height: 100%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 14px;
+            resize: none;
+        }
+        textarea.wrap {
+            white-space: pre-wrap;
+        }
+        textarea {
+            white-space: nowrap;
+            overflow-x: auto;
+        }
+        textarea.wrap {
+            white-space: pre-wrap;
+            overflow-x: hidden;
+        }
+        .footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #333;
+            color: white;
+            font-size: 14px;
+        }
+
+#coffee {
+    background: none; 
+    border: none; 
+    color: #fff; 
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: left; 
+    padding: 0; 
+    margin-left: 1.5em; 
+    margin-right: auto; 
+    
+}
+
+
+#coffee .material-symbols-outlined {
+    font-size: 2.3em; 
+}
+        #coffee {
+    display: none; /* Hidden by default */
+}
     </style>
 </head>
 <body>
-    <div class="ribbon">
-        <button id="clearButton">Clear All</button>
-        <div class="gap"></div>
-        <button id="runButton">Run</button>
-        <input type="text" id="filenameInput" value="webpage" placeholder="Filename" onclick="this.select()" onmouseup="return false;">
-        <div class="dropdown">
-            <button id="optionButton">&#8942;</button>
-            <div class="dropdown-content">
-                <button id="downloadButton">Download</button>
-                
+    <div class="wrapper">
+        <div class="editor-header">
+            <div class="header-buttons">
+                <button id="clearButton">Clear</button>
+                <button id="runButton">Run</button>
+               
+            </div>
+ <button id="coffee">
+        <span class="material-symbols-outlined">local_cafe</span>
+                </button>
+            <button id="menuButton" class="menu-button">☰</button>
+        </div>
+        <div id="menu" class="menu">
+            <button id="removeComments">Remove Comments</button>
+            <button id="toggleWrap">Text Wrap: OFF</button>
+            <button id="increaseFont">Increase Font Size</button>
+            <button id="decreaseFont">Decrease Font Size</button>
+            <hr>
+            <button id="downloadHTML">Download HTML</button>
+            <button id="downloadCSS">Download CSS</button>
+            <button id="downloadJS">Download JS</button>
+        </div>
+        <div class="tabs">
+            <span id="htmlTab" class="active">HTML</span>
+            <span id="cssTab">CSS</span>
+            <span id="jsTab">JS</span>
+        </div>
+        <div class="code-container">
+            <div id="htmlEditor" class="code-editor active">
+                <textarea id="htmlInput" placeholder="Write HTML here..."></textarea>
+            </div>
+            <div id="cssEditor" class="code-editor">
+                <textarea id="cssInput" placeholder="Write CSS here..."></textarea>
+            </div>
+            <div id="jsEditor" class="code-editor">
+                <textarea id="jsInput" placeholder="Write JavaScript here..."></textarea>
             </div>
         </div>
-        <div class="gap"></div>
-    </div>
-
-    <div id="editor">
-        <div id="codeContainer">
-            <textarea id="codeInput" placeholder="Enter your code here...😎"></textarea>
+        <div class="footer">
+            Mobile Code Editor | Built for You
         </div>
     </div>
-
+   <script src="888.js"></script>
     <script>
-        // Clear button
-        document.getElementById('clearButton').addEventListener('click', function() {
-            document.getElementById('codeInput').value = '';
+        const menuButton = document.getElementById('menuButton');
+        const menu = document.getElementById('menu');
+        const tabs = document.querySelectorAll('.tabs span');
+        const editors = document.querySelectorAll('.code-editor');
+        const textareas = document.querySelectorAll('textarea');
+        let wrapEnabled = false;
+        let fontSize = 14;
+
+        menuButton.addEventListener('click', () => {
+            menu.classList.toggle('active');
         });
 
-        // Run button
-        document.getElementById('runButton').addEventListener('click', function() {
-            var code = document.getElementById('codeInput').value;
-            var newWindow = window.open();
-            newWindow.document.write(code);
+        tabs.forEach((tab, index) => {
+    tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        editors.forEach(editor => editor.classList.remove('active'));
+        tab.classList.add('active');
+        editors[index].classList.add('active');
+
+        toggleCoffeeButton(); // Update coffee button visibility
+    });
+});
+
+
+        function downloadFile(filename, content) {
+            const blob = new Blob([content], { type: 'text/plain' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = filename;
+            a.click();
+        }
+
+        document.getElementById('downloadHTML').addEventListener('click', () => {
+            downloadFile('index.html', document.getElementById('htmlInput').value);
+        });
+
+        document.getElementById('downloadCSS').addEventListener('click', () => {
+            downloadFile('style.css', document.getElementById('cssInput').value);
+        });
+
+        document.getElementById('downloadJS').addEventListener('click', () => {
+            downloadFile('script.js', document.getElementById('jsInput').value);
+        });
+
+        window.addEventListener('load', () => {
+            ['htmlInput', 'cssInput', 'jsInput'].forEach(id => {
+                const textarea = document.getElementById(id);
+                textarea.value = localStorage.getItem(id) || '';
+                textarea.addEventListener('input', () => {
+                    localStorage.setItem(id, textarea.value);
+                });
+            });
+        });
+
+        document.getElementById('clearButton').addEventListener('click', () => {
+    const ids = ['htmlInput', 'cssInput', 'jsInput'];
+    ids.forEach(id => {
+        const textarea = document.getElementById(id);
+        if (textarea) textarea.value = '';
+        localStorage.removeItem(id);
+    });
+    toggleCoffeeButton(); // Show coffee button after clearing
+});
+
+        document.getElementById('runButton').addEventListener('click', () => {
+            const htmlCode = document.getElementById('htmlInput').value;
+            const cssCode = `<style>${document.getElementById('cssInput').value}</style>`;
+            const jsCode = `<script>${document.getElementById('jsInput').value}<\/script>`;
+            const newWindow = window.open();
+            newWindow.document.write(htmlCode + cssCode + jsCode);
             newWindow.document.close();
         });
 
-
-
-
-        // Download button
-        document.getElementById('downloadButton').addEventListener('click', function() {
-            var code = document.getElementById('codeInput').value;
-            var filename = document.getElementById('filenameInput').value + '.html';
-
-            var element = document.createElement('a');
-            element.setAttribute('href', 'data:text/html;charset=utf-8,' + encodeURIComponent(code));
-            element.setAttribute('download', filename);
-
-            element.style.display = 'none';
-            document.body.appendChild(element);
-
-            element.click();
-
-            document.body.removeChild(element);
+        document.getElementById('removeComments').addEventListener('click', () => {
+            const activeEditor = document.querySelector('.code-editor.active textarea');
+            if (activeEditor) {
+                activeEditor.value = activeEditor.value
+                    .replace(/<!--[\s\S]*?-->/g, '')
+                    .replace(/\/\*[\s\S]*?\*\//g, '')
+                    .replace(/\/\/[^\n]*\n/g, '\n');
+            }
         });
-    </script>
+
+        document.getElementById('increaseFont').addEventListener('click', () => {
+            fontSize += 2;
+            textareas.forEach(ta => ta.style.fontSize = fontSize + 'px');
+        });
+
+        document.getElementById('decreaseFont').addEventListener('click', () => {
+            if (fontSize > 10) fontSize -= 2;
+            textareas.forEach(ta => ta.style.fontSize = fontSize + 'px');
+        });
+
+        const toggleWrapButton = document.getElementById('toggleWrap');
+        toggleWrapButton.addEventListener('click', () => {
+            wrapEnabled = !wrapEnabled;
+            textareas.forEach(ta => {
+                if (wrapEnabled) {
+                    ta.classList.add('wrap');
+                } else {
+                    ta.classList.remove('wrap');
+                }
+            });
+            toggleWrapButton.textContent = `Text Wrap: ${wrapEnabled ? 'ON' : 'OFF'}`;
+        });
+
+
+
+
+
+
+
+function toggleCoffeeButton() {
+    const htmlInput = document.getElementById('htmlInput');
+    const coffeeButton = document.getElementById('coffee');
+    const htmlTab = document.getElementById('htmlTab');
+    
+    // Check if the HTML tab is active
+    const isHtmlTabActive = htmlTab.classList.contains('active');
+    
+    // Show button only if HTML tab is active and the input is empty
+    if (isHtmlTabActive && htmlInput.value.trim() === '') {
+        coffeeButton.style.display = 'inline-flex';
+    } else {
+        coffeeButton.style.display = 'none';
+    }
+}
+
+document.getElementById('coffee').addEventListener('click', () => {
+    const htmlInput = document.getElementById('htmlInput');
+    htmlInput.value = htmlBoilerplate;
+    localStorage.setItem('htmlInput', htmlBoilerplate); // Save to localStorage
+    toggleCoffeeButton();
+});
+
+window.addEventListener('load', () => {
+    toggleCoffeeButton(); // Set initial state
+});
+
+document.getElementById('htmlInput').addEventListener('input', toggleCoffeeButton);
+ 
+
+
+
+
+
+// Wait for the page to fully load
+window.onload = function () {
+    // Get the HTML textarea (reference height)
+    const htmlTextarea = document.getElementById('htmlInput');
+    
+    // Compute the initial height in pixels
+    const initialHeight = htmlTextarea.offsetHeight;
+
+    // Save the height as pixels
+    const fixedHeight = `${initialHeight}px`;
+
+    // Apply the same height to all textareas
+    const textareas = document.querySelectorAll('textarea');
+    textareas.forEach((textarea) => {
+        textarea.style.height = fixedHeight;
+    });
+
+    // Log the fixed height (optional)
+    console.log(`Locked height for all textareas: ${fixedHeight}`);
+};
+
+   </script>
 </body>
 </html>
