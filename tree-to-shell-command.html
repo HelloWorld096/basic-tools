@@ -83,7 +83,7 @@
             });
         }
         async function promptAndSaveApiKey() {
-            const apiKey = prompt("Please enter your API key:");
+            const apiKey = prompt("Get an API key from :\nhttps://openrouter.ai/google/learnlm-1.5-pro-experimental:free/api\n\n________________________________\nPlease enter your API key:");
             if (apiKey) {
                 await saveApiKey(apiKey);
                 return apiKey;
