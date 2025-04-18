@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Investment Tracker</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Dashboard -->
+    <div class="dashboard active">
+      <div class="app-header">
+        <h1 class="app-title"><i class="fas fa-chart-line"></i> Investment Tracker</h1>
+        <button id="openModal" class="add-button">
+          <i class="fas fa-plus"></i> New
+        </button>
+      </div>
+      
+      <div class="overall-stats" id="overallStats">
+        <h2 class="overall-stats-title"><i class="fas fa-wallet"></i> Portfolio Summary</h2>
+        <div class="overall-stats-content">
+          <div class="overall-stats-item">
+            <div class="overall-stats-value" id="totalInvested">₹0</div>
+            <div class="overall-stats-label">Invested</div>
+          </div>
+          <div class="overall-stats-item">
+            <div class="overall-stats-value" id="totalWithdrawn">₹0</div>
+            <div class="overall-stats-label">Withdrawn</div>
+          </div>
+          <div class="overall-stats-item">
+            <div class="overall-stats-value" id="totalPL">₹0</div>
+            <div class="overall-stats-label">Profit/Loss</div>
+          </div>
+        </div>
+      </div>
+      
+      <h2 class="section-title"><i class="fas fa-money-bill-wave"></i> Your Investments</h2>
+      
+      <div class="tab-navigation">
+        <button id="activeTab" class="tab-button active">Active <span class="tab-badge" id="activeCount">0</span></button>
+        <button id="inactiveTab" class="tab-button">Inactive <span class="tab-badge" id="inactiveCount">0</span></button>
+      </div>
+      
+      <ul class="product-list" id="productList"></ul>
+    </div>
+    
+    <!-- Detail View -->
+    <div class="detail-view" id="detailView">
+      <div class="detail-header">
+        <button id="backBtn" class="back-button">
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        <h2 class="detail-title" id="productTitle"></h2>
+        <button id="toggleStatusBtn" class="btn-outline"></button>
+      </div>
+      
+      <div class="detail-stats">
+        <div class="detail-stats-content">
+          <div class="detail-stats-item">
+            <div class="detail-stats-value" id="investedAmount">₹0</div>
+            <div class="detail-stats-label">Invested</div>
+          </div>
+          <div class="detail-stats-item">
+            <div class="detail-stats-value" id="withdrawnAmount">₹0</div>
+            <div class="detail-stats-label">Withdrawn</div>
+          </div>
+          <div class="detail-stats-item">
+            <div class="detail-stats-value" id="profitAmount">₹0</div>
+            <div class="detail-stats-label">Profit/Loss</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="withdrawal-form" id="withdrawalForm">
+        <h3 class="withdrawal-form-title"><i class="fas fa-hand-holding-inr"></i> Record a Withdrawal</h3>
+        <div class="withdrawal-input-group">
+          <input type="number" id="withdrawInput" placeholder="Enter amount" step="0.01" min="0" />
+          <button id="withdrawBtn">
+            <i class="fas fa-plus"></i> Add
+          </button>
+        </div>
+      </div>
+      
+      <div class="transaction-history">
+        <h3 class="section-title"><i class="fas fa-history"></i> Transaction History</h3>
+        <ul class="transaction-list" id="transactionList"></ul>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal -->
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-icon">
+          <i class="fas fa-plus"></i>
+        </div>
+        <h3 class="modal-title">Add New Investment</h3>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label" for="productName">Investment Name</label>
+        <input type="text" id="productName" placeholder="e.g., Stock Portfolio, Crypto, ETF" />
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label" for="initialInvestment">Initial Investment (₹)</label>
+        <input type="number" id="initialInvestment" placeholder="0.00" step="0.01" min="0" />
+      </div>
+      
+      <div class="modal-actions">
+        <button id="cancelModal" class="btn btn-secondary">Cancel</button>
+        <button id="saveProduct" class="btn btn-primary">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"> </script>
+ </body>
+</html>
