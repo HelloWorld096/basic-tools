@@ -1,0 +1,348 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PGN Simplifier</title>
+  <style>
+    body { font-family: sans-serif; margin: 0; display: flex; height: 100vh; }
+    .sidebar { width: 350px; border-right:1px solid #ccc; padding:1em; overflow-y:auto; position:relative; }
+    button{ padding:0.5em 1em; margin:0.2em 0; cursor:pointer; }
+    input[type="text"], select{ width:100%; padding:0.5em; margin-bottom:0.5em; }
+    table{ width:100%; border-collapse:collapse; margin-top:1em; }
+    th, td{ padding:0.6em; border-bottom:1px solid #ddd; }
+    th{ background:#f4f4f4; text-align:left; }
+    tr{ cursor:pointer; transition:background 0.2s; }
+    tr:hover{ background:#f9f9f9; }
+    tr.copied{ background:#d4edda!important; }
+    .result{ font-weight:bold; }
+    .result.win{ color:green; }
+    .result.loss{ color:red; }
+    .result.draw{ color:gray; }
+    .small{ color:#666; font-size:0.75em; display:block; }
+    #loadMoreBtn{ width:100%; padding:0.6em; margin-top:0.5em; border:none; border-radius:4px; }
+    /* Modal */
+    #settingsModal{ display:none; position:fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.4); align-items:center; justify-content:center; }
+    #settingsModal.active{ display:flex; }
+    #settingsContent{ background:#fff; padding:1.5em; width:400px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.2); position:relative; }
+    #settingsContent h2{ margin-top:0; font-size:1.2em; }
+    #settingsContent .close{ position:absolute; top:12px; right:12px; background:none; border:none; font-size:1.2em; cursor:pointer; }
+    #settingsContent table{ width:100%; margin-top:1em; }
+    #settingsContent th, #settingsContent td{ padding:0.5em; border:1px solid #ddd; }
+    #settingsContent th{ background:#f9f9f9; }
+    #settingsContent td button{ padding:0.3em 0.6em; margin-left:0.3em; }
+    /* Main */
+    .main{ flex:1; padding:1em; overflow-y:auto; }
+    .main h1{ margin-top:0; }
+    textarea{ width:100%; font-family:monospace; margin:0.5em 0; }
+    textarea#pgnInput, textarea#output{ height:150px; }
+    #notif{ background:#fffbcc; border:1px solid #eedc82; padding:0.5em; margin-bottom:0.5em; display:none; }
+    #copyOriginalBtn{ display:none; margin-left:0.5em; }
+
+.username-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.suggestions {
+  display: none;            /* still hidden until focus */
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  max-height: 150px;
+  overflow-y: auto;
+  margin-top: 0.25em;       /* small gap under input */
+}
+
+.suggestion-item {
+  padding: 0.5em;
+  cursor: pointer;
+}
+
+.suggestion-item:hover {
+  background: #f0f0f0;
+}
+
+
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <button id="settingsBtn">Settings</button>
+    <div id="config">
+      <div id="notif">
+        <span>Save this username?</span><br>
+        <button id="yesSave">Yes</button>
+        <button id="noSave">No</button>
+      </div>
+      <!-- replace your current username input line with: -->
+<div class="username-wrapper" style="position:relative;">
+  <input type="text" id="usernameInput" placeholder="Lichess username or URL">
+  <div id="userSuggestions" class="suggestions" style="display:none;"></div>
+</div>
+
+      <button id="loadUserBtn">Load Games</button>
+      <h2>Recent Games</h2>
+      <table id="gamesTable"><thead><tr><th>Opponent (Elo)</th><th>Game</th><th>Result</th></thead><tbody></tbody></table>
+      <button id="loadMoreBtn">Load more</button>
+    </div>
+    <div id="settingsModal">
+      <div id="settingsContent">
+        <button class="close">×</button>
+        <h2>Manage Usernames</h2>
+        <table>
+          <thead><tr><th>Default</th><th>Username</th><th>Actions</th></tr></thead>
+          <tbody id="userList"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <h1>PGN Simplifier</h1>
+    <div>
+      <input type="text" id="urlInput" placeholder="https://lichess.org/...">
+      <button id="loadUrlBtn">Load PGN</button>
+      <button id="copyOriginalBtn">Copy Original PGN</button>
+    </div>
+    <label><b>Or Paste/Upload PGN:</b></label>
+    <textarea id="pgnInput"></textarea>
+    <input type="file" id="fileInput" accept=".pgn,.txt"><br>
+    <button id="simplifyBtn">Simplify PGN</button>
+    <h2>Simplified PGN</h2>
+    <textarea id="output" readonly></textarea>
+    <button id="copyBtn">Copy Simplified PGN</button>
+  </div>
+  <script>
+  // === PGN Simplifier ======================================================
+  const simplifyPGN = raw =>
+    raw
+      .replace(/\[.*?\]\s*/g, '')
+      .replace(/\{[^}]*\}/g, '')
+      .replace(/\([^)]*\)/g, '')
+      .replace(/\d+\.\.\./g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+  // === Username parsing =====================================================
+  const parseUsername = input => {
+    const t = input.trim(),
+          m = t.match(/lichess\.org\/@?([\w-]+)/);
+    return m ? m[1] : t;
+  };
+
+  // === Element refs ========================================================
+  const usernameInput   = document.getElementById('usernameInput');
+  const suggestionsDiv  = document.getElementById('userSuggestions');
+  const notif           = document.getElementById('notif');
+  const simplifyBtn     = document.getElementById('simplifyBtn');
+  const pgnInput        = document.getElementById('pgnInput');
+  const outputTextarea  = document.getElementById('output');
+  const copyOrigBtn     = document.getElementById('copyOriginalBtn');
+  const loadUserBtn     = document.getElementById('loadUserBtn');
+  const yesSaveBtn      = document.getElementById('yesSave');
+  const noSaveBtn       = document.getElementById('noSave');
+  const settingsBtn     = document.getElementById('settingsBtn');
+  const settingsModal   = document.getElementById('settingsModal');
+  const closeSettings   = settingsModal.querySelector('.close');
+  const userList        = document.getElementById('userList');
+  const pageSize        = 20;
+  let nextUntil         = null;
+  const now             = Date.now();
+  const tbody           = document.querySelector('#gamesTable tbody');
+  const loadMoreBtn     = document.getElementById('loadMoreBtn');
+
+  // === Suggestions under username input ================================
+  usernameInput.addEventListener('focus', () => {
+    const users = JSON.parse(localStorage.getItem('lichessUsers') || '[]');
+    if (!users.length) return;
+    suggestionsDiv.innerHTML = users
+      .map(u => `<div class="suggestion-item">${u}</div>`)
+      .join('');
+    suggestionsDiv.style.display = 'block';
+  });
+  usernameInput.addEventListener('blur', () => {
+    setTimeout(() => suggestionsDiv.style.display = 'none', 200);
+  });
+  suggestionsDiv.addEventListener('click', e => {
+    if (!e.target.classList.contains('suggestion-item')) return;
+    usernameInput.value = e.target.textContent;
+    suggestionsDiv.style.display = 'none';
+    loadGames();
+  });
+
+  // === Simplify button (always from textarea content) ================
+  simplifyBtn.addEventListener('click', () => {
+    const raw = pgnInput.value || '';
+    outputTextarea.value = simplifyPGN(raw);
+    copyOrigBtn.style.display = raw ? 'inline-block' : 'none';
+  });
+
+  // === Load user & prompt save ================================
+  loadUserBtn.addEventListener('click', () => {
+    const u = parseUsername(usernameInput.value);
+    if (!u) return alert('Enter username');
+    loadGames();
+    let arr = JSON.parse(localStorage.getItem('lichessUsers') || '[]');
+    if (!arr.includes(u)) notif.style.display = 'block';
+  });
+  yesSaveBtn.addEventListener('click', () => {
+    const u = parseUsername(usernameInput.value);
+    let arr = JSON.parse(localStorage.getItem('lichessUsers') || '[]');
+    arr.push(u);
+    localStorage.setItem('lichessUsers', JSON.stringify(arr));
+    localStorage.setItem('lichessDefault', u);
+    notif.style.display = 'none';
+  });
+  noSaveBtn.addEventListener('click', () => {
+    notif.style.display = 'none';
+  });
+
+  // === Settings modal ===========================================
+  function renderUsers() {
+    userList.innerHTML = '';
+    const arr = JSON.parse(localStorage.getItem('lichessUsers') || '[]');
+    const def = localStorage.getItem('lichessDefault');
+    arr.forEach(u => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td><input type="radio" name="default" ${u === def ? 'checked' : ''}></td>
+        <td>${u}</td>
+        <td>
+          <button class="edit">Edit</button>
+          <button class="del">Delete</button>
+        </td>`;
+      row.querySelector('input').addEventListener('change', () => {
+        localStorage.setItem('lichessDefault', u);
+      });
+      row.querySelector('.del').addEventListener('click', () => {
+        let a = arr.filter(x => x !== u);
+        localStorage.setItem('lichessUsers', JSON.stringify(a));
+        if (def === u) localStorage.removeItem('lichessDefault');
+        renderUsers();
+      });
+      row.querySelector('.edit').addEventListener('click', () => {
+        const nu = prompt('Username', u);
+        if (nu) {
+          let a = arr.map(x => (x === u ? nu : x));
+          localStorage.setItem('lichessUsers', JSON.stringify(a));
+          if (def === u) localStorage.setItem('lichessDefault', nu);
+          renderUsers();
+        }
+      });
+      userList.appendChild(row);
+    });
+  }
+  settingsBtn.addEventListener('click', () => {
+    renderUsers();
+    settingsModal.classList.add('active');
+  });
+  closeSettings.addEventListener('click', () => settingsModal.classList.remove('active'));
+  settingsModal.addEventListener('click', e => {
+    if (e.target === settingsModal) settingsModal.classList.remove('active');
+  });
+
+  // === Load & display games =====================================
+  function formatAgo(ms) {
+    if (ms < 60000) return '<1m ago';
+    if (ms < 3600000) return Math.floor(ms / 60000) + 'm ago';
+    if (ms < 86400000) return Math.floor(ms / 3600000) + 'h ago';
+    if (ms < 2592000000) return Math.floor(ms / 86400000) + 'd ago';
+    return Math.floor(ms / 2592000000) + 'mo ago';
+  }
+  function formatGame(g) {
+    return `${g.speed} ${Math.floor(g.clock.initial / 60)}+${g.clock.increment}`;
+  }
+  async function loadGames() {
+    tbody.innerHTML = '';
+    nextUntil = null;
+    loadMore();
+  }
+  async function loadMore() {
+    const user = parseUsername(usernameInput.value);
+    let url = `https://lichess.org/api/games/user/${user}?max=${pageSize}&moves=false&evals=false&opening=false`;
+    if (nextUntil) url += `&until=${nextUntil - 1}`;
+    const nd = await fetch(url, { headers: { Accept: 'application/x-ndjson' } }).then(r => r.text());
+    if (!nd.trim()) {
+      loadMoreBtn.disabled = true;
+      loadMoreBtn.textContent = 'No more games';
+      return;
+    }
+    let last = null;
+    nd.trim().split('\n').forEach(l => {
+      const g = JSON.parse(l);
+      last = g.createdAt;
+      const me = g.players.white.user.name.toLowerCase() === user.toLowerCase();
+      const opp = me ? g.players.black : g.players.white;
+      let sym, cls;
+      if (!g.winner) {
+        sym = '[ = ]'; cls = 'draw';
+      } else {
+        const oppW = (g.winner === 'white' && !me) || (g.winner === 'black' && me);
+        sym = oppW ? '[ – ]' : '[ + ]';
+        cls = oppW ? 'loss' : 'win';
+      }
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${opp.user.name} (${opp.rating})<span class="small">${formatAgo(now - g.createdAt)}</span></td>
+        <td>${formatGame(g)}</td>
+        <td class="result ${cls}">${sym}</td>`;
+      tr.addEventListener('click', async () => {
+        const pgn = await fetch(`https://lichess.org/game/export/${g.id}`).then(r => r.text());
+        pgnInput.value = pgn;
+        outputTextarea.value = '';           // clear old
+        copyOrigBtn.style.display = 'inline-block';
+      });
+      tbody.appendChild(tr);
+    });
+    nextUntil = last;
+  }
+  loadMoreBtn.addEventListener('click', loadMore);
+
+  // === On load, auto-load default user =======================
+  window.addEventListener('load', () => {
+    const d = localStorage.getItem('lichessDefault');
+    if (d) {
+      usernameInput.value = d;
+      loadGames();
+    }
+  });
+
+  // === Copy handlers =========================================
+  document.getElementById('copyOriginalBtn').addEventListener('click', async () => {
+    await navigator.clipboard.writeText(pgnInput.value);
+    alert('Original PGN copied');
+  });
+  document.getElementById('copyBtn').addEventListener('click', async () => {
+    await navigator.clipboard.writeText(outputTextarea.value);
+    alert('Simplified PGN copied');
+  });
+
+  // === URL importer ===========================================
+  document.getElementById('loadUrlBtn').addEventListener('click', async () => {
+    const m = document.getElementById('urlInput')
+      .value.trim()
+      .match(/lichess\.org\/(?:game\/export\/)?([\w-]+)/);
+    if (!m) return alert('Invalid URL');
+    const pgn = await fetch(`https://lichess.org/game/export/${m[1]}`).then(r => r.text());
+    pgnInput.value = pgn;
+    outputTextarea.value = '';              // clear old
+    copyOrigBtn.style.display = 'inline-block';
+  });
+
+  // === File importer (just loads into input) ================
+  document.getElementById('fileInput').addEventListener('change', function () {
+    const f = this.files[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = e => {
+      pgnInput.value = e.target.result;
+      outputTextarea.value = '';            // clear old
+      copyOrigBtn.style.display = 'inline-block';
+    };
+    r.readAsText(f);
+  });
+</script>
+
+</body>
+</html>
