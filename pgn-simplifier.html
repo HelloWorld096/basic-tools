@@ -112,6 +112,7 @@
     <h2>Simplified PGN</h2>
     <textarea id="output" readonly></textarea>
     <button id="copyBtn">Copy Simplified PGN</button>
+    <button id="openShareBtn" disabled>Open in ShareChess</button>
   </div>
   <script>
   // === PGN Simplifier ======================================================
@@ -341,6 +342,68 @@
       copyOrigBtn.style.display = 'inline-block';
     };
     r.readAsText(f);
+  });
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // — your utility functions —
+    const simplifyPGN = raw =>
+      raw
+        .replace(/\[.*?\]\s*/g, '')
+        .replace(/\{[^}]*\}/g, '')
+        .replace(/\([^)]*\)/g, '')
+        .replace(/\d+\.\.\./g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    function pgnToShareChessUrl(pgn) {
+      const resultMatch = pgn.match(/\b(1-0|0-1|1\/2-1\/2)\b/);
+      const result = resultMatch ? resultMatch[0] : null;
+      let body = pgn
+        .replace(/\[.*?\]\s*\r?\n/g, '')
+        .replace(/\{.*?\}/g, '')
+        .replace(/;.*$/gm, '')
+        .replace(/(\d+)\.(\.\.)?/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+      const minimal = (result ? 'R ' + result : '') + '\n\n' + body;
+      return `https://sharechess.github.io/#pgn/w/0/${btoa(minimal)}`;
+    }
+
+    // — grab all the elements once —
+    const pgnInput       = document.getElementById('pgnInput');
+    const simplifyBtn    = document.getElementById('simplifyBtn');
+    const outputTextarea = document.getElementById('output');
+    const copyOrigBtn    = document.getElementById('copyOriginalBtn');
+    const openShareBtn   = document.getElementById('openShareBtn');
+
+    // — helper to toggle the Open button based on simplified PGN —
+    function toggleOpenBtn() {
+      openShareBtn.disabled = outputTextarea.value.trim() === '';
+    }
+
+    // — initialize button state —
+    toggleOpenBtn();
+
+    // — re-toggle whenever the simplified PGN changes manually —
+    outputTextarea.addEventListener('input', toggleOpenBtn);
+
+    // — Simplify handler —
+    simplifyBtn.addEventListener('click', () => {
+      const raw    = pgnInput.value || '';
+      const simple = simplifyPGN(raw);
+      outputTextarea.value = simple;
+      copyOrigBtn.style.display = raw ? 'inline-block' : 'none';
+      toggleOpenBtn();
+    });
+
+    // — Open in ShareChess handler —
+    openShareBtn.addEventListener('click', () => {
+      if (outputTextarea.value.trim() === '') return;
+      window.open(pgnToShareChessUrl(outputTextarea.value), '_blank');
+    });
+
+    // … other handlers …
   });
 </script>
 
