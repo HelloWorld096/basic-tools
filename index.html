@@ -1,301 +1,543 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>☰</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>☰</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --accent-color: #bb86fc;
+            --border-color: #333;
+            --hover-color: rgba(187, 134, 252, 0.1);
+        }
 
-  <style>
-    @font-face {
-      font-family: 'Kanit';
-      font-display: swap;
-      src: url(https://fonts.gstatic.com/s/kanit/v15/nKKU-Go6G5tXcr5mOBWnVaFrNlJz.woff2) format('woff2');
-    }
-    @font-face {
-      font-family: 'Syne';
-      font-weight: 500;
-      font-display: swap;
-      src: url(https://fonts.gstatic.com/s/syne/v22/8vIS7w4qzmVxsWxjBZRjr0FKM_0KuQ6jTY_vCk5Y.woff2) format('woff2');
-    }
-    @font-face {
-      font-family: 'Montserrat';
-      font-weight: 300;
-      font-display: swap;
-      src: url(https://fonts.gstatic.com/s/montserrat/v26/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCs16Hw5aXp-obK4.woff2) format('woff2');
-    }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+-webkit-tap-highlight-color: transparent;
+  outline: none;
+user-select: none;
+        }
 
-    body {
-      font-family: 'Roboto', sans-serif;
-      background-color: #F3F4F6;
-      margin: 0;
-      padding: 0 20px 20px;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      flex-direction: column;
-      user-select: none;
-      -webkit-user-select: none;
-    }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 0;
+        }
 
-    h1 {
-      font-family: 'Kanit';
-      text-align: center;
-      margin-bottom: 2px;
-      color: #333333;
-      font-size: 2.5rem;
-      font-weight: 500;
-      width: 100%;
-      display: flex;
-      justify-content: center;
-    }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
 
-    button, a, .card {
-      -webkit-tap-highlight-color: transparent;
-      outline: none;
-    }
+        .header {
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+        }
 
-    button:focus, a:focus, .card:focus {
-      outline: none;
-      box-shadow: none;
-    }
+        .logo {
+            position: relative;
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            
+            font-weight: 600;
+            color: var(--accent-color);
+        }
 
-    .card-container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      align-items: flex-start;
-      gap: 20px;
-      width: 100%;
-    }
+        .logo svg {
+            margin-right: 10px;
+        }
+    
+        .search-div {
+            margin-left: auto;
+    position: absolute;
+    right: 5px;
+    top: 40%;
+    transform: translateY(-45%);
+}
 
-    .card {
-      background-color: #FFFFFF;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      padding: 20px;
-      width: 100%;
-      max-width: 340px;
-      transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-      cursor: pointer;
-      color: #333333;
-      border: 1px solid #E0E0E0;
-      flex-grow: 1;
-    }
+        .search-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto 30px;
+        }
 
-    .card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-    }
+        .search-input {
+            width: 100%;
+            padding: 12px 20px;
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            outline: none;
+            margin-top: 30px;
+            transition: all 0.3s ease;
+        }
 
-    .card-title {
-      font-family: Syne;
-      font-size: 1.4rem;
-      margin-bottom: 8px;
-      color: #2D3748;
-      font-weight: 500;
-    }
+        .search-input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(187, 134, 252, 0.1);
+        }
 
-    .separator {
-      width: 90%;
-      height: 4px;
-      background-color: #0969DA;
-      margin: 10px 0 15px;
-      border-radius: 2px;
-    }
+        .tabs {
+            display: flex;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--bg-primary);
+        }
 
-    .description {
-      font-family: "Montserrat", system-ui;
-      font-weight: 300;
-      font-size: 1rem;
-      color: #555;
-      margin-bottom: 20px;
-      line-height: 1.6;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      transition: max-height 0.6s ease, -webkit-line-clamp 0.3s ease;
-      min-height: 4.8em;
-      max-height: 4.8em;
-    }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            font-family: monospace;
+        }
 
-    .card:hover .description {
-      -webkit-line-clamp: unset;
-      max-height: 100%;
-      min-height: auto;
-    }
+        .tab.active {
+            background-color: var(--accent-color);
+            color: var(--bg-primary);
+        }
 
-    .file-name {
-      font-family: monospace;
-      font-size: 0.9rem;
-      color: #A0AEC0;
-      text-align: right;
-    }
+        .file-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
 
-    #loading-spinner {
-      font-family: sans-serif;
-      font-weight: 300;
-      color: #333;
-      font-size: 1.2rem;
-      margin-left: 15px;
-      margin-top: 20px;
-    }
+        .file-item {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            heigbht: 200px;
+        }
 
-    #error-message {
-      font-family: 'Montserrat', sans-serif;
-      color: red;
-      font-size: 1.2rem;
-      text-align: center;
-      display: flex;
-      justify-content: center;
-      width: 100%;
-      margin: 20px 0;
-    }
+        .file-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            border-color: var(--accent-color);
+        }
 
-    @media (min-width: 768px) {
-      .card-container {
-        justify-content: center;
-        align-items: flex-start;
-        gap: 30px;
-      }
+        .file-item:hover .file-default-content {
+            display: none;
+        }
 
-      .card {
-        width: calc(33.333% - 40px);
-        margin: 20px;
-        max-width: 400px;
-      }
-    }
+        .file-item:hover .file-hover-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            height: 100%;
+        }
 
-    @media (min-width: 1024px) {
-      .card {
-        width: calc(25% - 40px);
-      }
-    }
-  </style>
+        .file-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-color), transparent);
+        }
+
+        .file-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .file-hover-content {
+            display: none;
+            color: var(--text-primary);
+            padding: 10px;
+        }
+
+        .file-hover-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--accent-color);
+        }
+
+        .file-hover-description {
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .file-type {
+            background-color: rgba(187, 134, 252, 0.1);
+            color: var(--accent-color);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .empty-state, .error-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--text-secondary);
+        }
+
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--accent-color);
+            border-top: 3px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .file-list {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.28 1.15-.28 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/>
+                    <path d="M9 18c-4.51 2-5-2-7-2"/>
+                </svg>
+                Repo Explorer
 
-  <h1>Repository Menu</h1>
-  <div id="loading-spinner">Loading files . . .</div>
-  <div id="error-message"></div>
-  <div class="card-container" id="card-container"></div>
+            </div>
+            <div class="search-div">
+<svg xmlns="http://www.w3.org/2000/svg" height="26px" viewBox="0 -960 960 960" width="26px" fill="#bb86fc"><path d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z"/></svg>
+ </div>
+            <nav>
+                
+        
+            </nav>
+            
+        </header>
 
-  <script>
-    const owner = 'HelloWorld096';
-    const repo = 'basic-tools';
-    const branch = 'main';
-    const excludeFiles = ['index.html']; // Add more file names as needed
+         <div class="search-wrapper">
+            <input type="text" id="search-input" class="search-input" placeholder="Search files...">
+        </div>
 
-    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/?ref=${branch}`;
+        <div id="tabs" class="tabs"></div>
 
-    async function fetchFiles() {
-      const loadingSpinner = document.getElementById('loading-spinner');
-      const errorMessage = document.getElementById('error-message');
-      const cardContainer = document.getElementById('card-container');
+        <div id="loading-container" class="loading-spinner">
+            <div class="spinner"></div>
+        </div>
 
-      try {
-        const response = await fetch(apiUrl);
+        <div id="error-container" class="error-state" style="display:none;"></div>
+        <div id="empty-container" class="empty-state" style="display:none;">No files found</div>
 
-        if (!response.ok) {
-          errorMessage.style.display = 'block';
-          errorMessage.innerText = `GitHub API error: ${response.status}`;
-          return;
+        <div id="file-list" class="file-list"></div>
+    </div>
+
+    <script>
+        const owner = 'HelloWorld096';
+        const repo = 'basic-tools';
+        const branch = 'main';
+        const excludeFiles = ['index.html'];
+
+        const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/?ref=${branch}`;
+        const loadingContainer = document.getElementById('loading-container');
+        const errorContainer = document.getElementById('error-container');
+        const emptyContainer = document.getElementById('empty-container');
+        const fileList = document.getElementById('file-list');
+        const searchInput = document.getElementById('search-input');
+        const tabsContainer = document.getElementById('tabs');
+        
+        
+        document.addEventListener('DOMContentLoaded', function() {
+  const searchIcon = document.querySelector('.search-div');
+  const searchInput = document.querySelector('.search-input');
+
+  // Initially hide the search input if needed
+  searchInput.style.display = 'none';
+
+  searchIcon.addEventListener('click', function() {
+    // Toggle the display property between 'none' and 'block'
+    if (getComputedStyle(searchInput).display === 'none') {
+      searchInput.style.display = 'block';
+      searchInput.focus(); // Optional: focus the input when shown
+    } else {
+      searchInput.style.display = 'none';
+    }
+  });
+});
+
+        // Organize files by directory
+        function organizeFilesByDirectory(files) {
+            const fileStructure = { 'root': [] };
+
+            files.forEach(file => {
+                const pathParts = file.path.split('/');
+                if (pathParts.length === 1) {
+                    fileStructure['root'].push(file);
+                } else {
+                    const dirName = pathParts[0];
+                    if (!fileStructure[dirName]) {
+                        fileStructure[dirName] = [];
+                    }
+                    fileStructure[dirName].push(file);
+                }
+            });
+
+            return fileStructure;
         }
 
-        const data = await response.json();
+        async function fetchFiles() {
+            try {
+                const response = await fetch(apiUrl);
+                if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);
 
-        if (!Array.isArray(data) || data.length === 0) {
-          errorMessage.style.display = 'block';
-          errorMessage.innerText = "No files found in the repository.";
-          return;
+                const data = await response.json();
+                
+                // Recursive fetch for files in subdirectories
+                const recursiveFetch = async (contents, basePath = '') => {
+                    const files = [];
+                    for (const item of contents) {
+                        if (item.type === 'dir') {
+                            const dirResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${item.path}?ref=${branch}`);
+                            const dirContents = await dirResponse.json();
+                            const subFiles = await recursiveFetch(dirContents, `${item.path}/`);
+                            files.push(...subFiles);
+                        } else if (item.type === 'file' && item.name.endsWith('.html')) {
+                            item.path = `${basePath}${item.name}`;
+                            files.push(item);
+                        }
+                    }
+                    return files;
+                };
+
+                const files = await recursiveFetch(data);
+
+                const filteredFiles = files
+                    .filter(file => 
+                        !excludeFiles.some(excludedFile => 
+                            excludedFile.toLowerCase() === file.name.toLowerCase()
+                        )
+                    )
+                    .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+
+                if (filteredFiles.length === 0) {
+                    throw new Error("No HTML files found in the repository.");
+                }
+
+                loadingContainer.style.display = 'none';
+                return filteredFiles;
+            } catch (error) {
+                loadingContainer.style.display = 'none';
+                errorContainer.textContent = error.message;
+                errorContainer.style.display = 'block';
+                return [];
+            }
         }
 
-        // Sort the files by their 'updated_at' field in descending order (newest to oldest)
-        const sortedData = data.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+        async function fetchFileDetails(file) {
+            try {
+                const fileUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${file.path}`;
+                const response = await fetch(fileUrl);
+                
+                if (!response.ok) throw new Error(`Error fetching ${file.name}`);
 
-        let htmlFilesFound = false;
+                const text = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, 'text/html');
 
-        sortedData.forEach(file => {
-          if (file.name.endsWith('.html') && !excludeFiles.some(excludedFile => excludedFile.toLowerCase() === file.name.toLowerCase())) {
-            htmlFilesFound = true;
-            fetchFileDetails(file.name);
-          }
+                const title = doc.querySelector('title') ? doc.querySelector('title').innerText : file.name;
+                const descriptionTag = doc.querySelector('meta[name="description"]');
+                const description = (descriptionTag && descriptionTag.content.trim()) 
+                    ? descriptionTag.content.trim() 
+                    : 'No description available';
+
+                return { ...file, title, description };
+            } catch (error) {
+                console.error(`Error fetching details for ${file.name}:`, error);
+                return null;
+            }
+        }
+
+        function createFileItem(file) {
+            const { name, path, title, description } = file;
+            const fileItem = document.createElement('div');
+            fileItem.classList.add('file-item');
+            
+            const githubPagesUrl = `https://${owner}.github.io/${repo}/${path}`;
+            fileItem.addEventListener('click', () => {
+                window.open(githubPagesUrl, '_blank');
+            });
+
+            fileItem.innerHTML = `
+                <div class="file-default-content">
+                    <div class="file-name">${title}</div>
+                    <div class="file-details">
+                        <span class="file-type">${name.split('.').pop().toUpperCase()}</span>
+                        <span>${name}</span>
+                    </div>
+                </div>
+                <div class="file-hover-content">
+                    <div class="file-hover-title">${title}</div>
+                    <div class="file-hover-description">${description}</div>
+                </div>
+            `;
+
+            return fileItem;
+        }
+
+        function createTabs(fileStructure) {
+            // Clear existing tabs
+            tabsContainer.innerHTML = '';
+
+            // Create tabs for each directory
+            Object.keys(fileStructure).forEach((dirName, index) => {
+                const tab = document.createElement('div');
+                tab.classList.add('tab');
+                tab.textContent = dirName === 'root' ? 'Root' : dirName;
+                
+                // Make the first tab active by default
+                if (index === 0) {
+                    tab.classList.add('active');
+                }
+
+                tab.addEventListener('click', () => {
+                    // Remove active class from all tabs
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    
+                    // Add active class to clicked tab
+                    tab.classList.add('active');
+
+                    // Filter files for this directory
+                    filterFilesByDirectory(dirName);
+                });
+
+                tabsContainer.appendChild(tab);
+            });
+        }
+
+        function filterFilesByDirectory(dirName) {
+            const fileItems = document.querySelectorAll('.file-item');
+            fileItems.forEach(item => {
+                const shouldShow = dirName === 'root' 
+                    ? !item.dataset.path.includes('/')
+                    : item.dataset.path.startsWith(`${dirName}/`);
+                
+                item.style.display = shouldShow ? 'flex' : 'none';
+            });
+        }
+
+        async function initializeFileList() {
+            const files = await fetchFiles();
+            
+            if (files.length === 0) {
+                emptyContainer.style.display = 'block';
+                return;
+            }
+
+            // Organize files by directory
+            const fileStructure = organizeFilesByDirectory(files);
+
+            // Create tabs
+            createTabs(fileStructure);
+
+            const fileDetails = await Promise.all(
+                files.map(file => fetchFileDetails(file))
+            );
+
+            // Clear previous file list
+            fileList.innerHTML = '';
+
+            fileDetails.forEach(file => {
+                if (file) {
+                    const fileItem = createFileItem(file);
+                    // Add path as a data attribute for filtering
+                    fileItem.dataset.path = file.path;
+                    fileList.appendChild(fileItem);
+                }
+            });
+
+            // Initially show files in the first (root) tab
+            filterFilesByDirectory('root');
+        }
+
+        // Search functionality
+        searchInput.addEventListener('input', () => {
+            const searchTerm = searchInput.value.toLowerCase();
+            const fileItems = document.querySelectorAll('.file-item');
+            
+            fileItems.forEach(item => {
+                const fileName = item.querySelector('.file-details span:last-child').textContent.toLowerCase();
+                const fileTitle = item.querySelector('.file-name').textContent.toLowerCase();
+                const fileDescription = item.querySelector('.file-hover-description').textContent.toLowerCase();
+                
+                if (fileName.includes(searchTerm) || 
+                    fileTitle.includes(searchTerm) || 
+                    fileDescription.includes(searchTerm)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
         });
 
-        if (!htmlFilesFound) {
-          errorMessage.style.display = 'block';
-          errorMessage.innerText = "No HTML files found in the repository (excluding specified files).";
-        }
-
-      } catch (error) {
-        console.error('Error fetching files:', error);
-        errorMessage.style.display = 'block';
-        errorMessage.innerText = "Failed to load files. Please try again later.";
-      } finally {
-        loadingSpinner.style.display = 'none';
-      }
-    }
-
-    async function fetchFileDetails(fileName) {
-      try {
-        const fileUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${fileName}`;
-
-        const response = await fetch(fileUrl);
-        if (!response.ok) {
-          throw new Error(`Error fetching ${fileName}`);
-        }
-
-        const text = await response.text();
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(text, 'text/html');
-
-        const title = doc.querySelector('title') ? doc.querySelector('title').innerText : fileName;
-        const descriptionTag = doc.querySelector('meta[name="description"]');
-        const description = (descriptionTag && descriptionTag.content.trim()) 
-          ? descriptionTag.content.trim() 
-          : 'No description available.\n\n\n';
-
-        createCard(fileName, title, description, fileUrl);
-      } catch (error) {
-        console.error(`Error fetching details for ${fileName}:`, error);
-      }
-    }
-
-    function createCard(fileName, title, description, fileUrl) {
-      const container = document.getElementById('card-container');
-      const card = document.createElement('div');
-      card.classList.add('card');
-
-      const githubPagesUrl = `https://${owner}.github.io/${repo}/${fileName}`;
-      card.addEventListener('click', () => {
-        window.open(githubPagesUrl, '_blank');
-      });
-
-      const titleElement = document.createElement('div');
-      titleElement.innerText = title;
-      titleElement.classList.add('card-title');
-
-      const separatorElement = document.createElement('div');
-      separatorElement.classList.add('separator');
-
-      const descriptionElement = document.createElement('div');
-      descriptionElement.innerText = description;
-      descriptionElement.classList.add('description');
-
-      const fileNameElement = document.createElement('div');
-      fileNameElement.innerText = fileName;
-      fileNameElement.classList.add('file-name');
-
-      card.appendChild(titleElement);
-      card.appendChild(separatorElement);
-      card.appendChild(descriptionElement);
-      card.appendChild(fileNameElement);
-      container.appendChild(card);
-    }
-
-    fetchFiles();
-  </script>
-
+        // Initialize
+        initializeFileList();
+    </script>
 </body>
 </html>
