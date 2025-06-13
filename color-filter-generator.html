@@ -9,31 +9,33 @@
     .filter-pixel {
       background-color: white;
     }
+    /* Invalid input style */
+    .invalid {
+      border-color: #f87171; /* red-400 */
+    }
   </style>
 </head>
-<body class="min-h-screen bg-gray-50 py-8 px-4">
+<body class="min-h-screen bg-gray-50 py-8 px-4 text-gray-900">
   <div class="max-w-md mx-auto">
     <!-- Header -->
-    <div class="text-center mb-8">
-      <h1 class="text-2xl font-light text-gray-900 mb-2">CSS Color Filter Generator</h1>
-      <p class="text-sm text-gray-500">Generate CSS filters to transform white to any color</p>
+    <div class="text-center mb-4">
+      <h1 class="text-2xl font-light mb-2">CSS Color Filter Generator</h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400">Generate CSS filters to transform <span class="font-bold underline text-gray-700 dark:text-gray-100">white</span> to any color</p>
+
     </div>
 
     <!-- Main Card -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
       <!-- Input Section -->
       <div class="p-6 border-b border-gray-100">
-        <label for="target-color" class="block text-sm font-medium text-gray-700 mb-3">
-          Target Color
-        </label>
+        <label for="target-color" class="block text-sm font-medium mb-3">Target Color</label>
         <div class="flex gap-3">
           <input 
             type="text" 
             id="target-color" 
-            placeholder="#00a4d6" 
-            value="#00a4d6" 
-            maxlength="7"
-            class="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="#8673A1 or rgb(150,164,50) or hsl(...), etc." 
+            value="#8673A1" 
+            class="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-transparent"
           />
           <button 
             id="compute-btn"
@@ -42,6 +44,8 @@
             Generate
           </button>
         </div>
+        <p id="input-help" class="mt-2 text-xs text-gray-500">Supports common color syntax: hex, RGB, HSL, HSV, CMYK, and standard CSS color names.</p>
+
       </div>
 
       <!-- Results Section -->
@@ -75,21 +79,25 @@
                 Copy
               </button>
             </div>
-            <div class="filterDetail text-xs font-mono text-gray-900 bg-gray-50 p-2 rounded border break-all">
-              –
-            </div>
+            <div class="filterDetail text-xs font-mono text-gray-900 bg-gray-50 p-2 rounded border break-all">–</div>
           </div>
-          
-          <div>
-            <span class="text-xs font-medium text-gray-500">Accuracy Loss: </span>
-            <span class="lossDetail text-xs text-gray-900">–</span>
+          <div class="flex justify-between items-center">
+            <div>
+              <span class="text-xs font-medium text-gray-500">Accuracy Loss: </span>
+              <span class="lossDetail text-xs">–</span>
+            </div>
+            <div>
+              <span class="text-xs font-medium text-gray-500">Retries: </span>
+              <span class="retryDetail text-xs">–</span>
+            </div>
           </div>
         </div>
 
         <!-- Note -->
         <div class="mt-4 p-3 bg-gray-50 rounded-md">
           <p class="text-xs text-gray-600">
-            The generator automatically retries until achieving high accuracy (loss ≤ 1). 
+            The generator automatically retries to achieve high accuracy (loss ≤ 1)<br>
+            Algorithm adapted from a solution on <a href="https://stackoverflow.com/a/43960991/604861" target="_blank" class="text-blue-500 underline">StackOverflow</a>.
           </p>
         </div>
       </div>
@@ -99,9 +107,7 @@
   <script>
   'use strict';
 
-  //
-  // == Color Utility Class ==
-  //
+  // Color Utility Class
   class Color {
     constructor(r, g, b) {
       this.set(r, g, b);
@@ -117,20 +123,16 @@
     toString() {
       return `rgb(${Math.round(this.r)}, ${Math.round(this.g)}, ${Math.round(this.b)})`;
     }
-
-    // Multiply the current [r,g,b] by a 3×3 matrix (array length 9)
     multiply(matrix) {
       const { r, g, b } = this;
       this.r = Color.clamp(r * matrix[0] + g * matrix[1] + b * matrix[2]);
       this.g = Color.clamp(r * matrix[3] + g * matrix[4] + b * matrix[5]);
       this.b = Color.clamp(r * matrix[6] + g * matrix[7] + b * matrix[8]);
     }
-
     hueRotate(angle = 0) {
       const rad = angle * Math.PI / 180;
       const cos = Math.cos(rad);
       const sin = Math.sin(rad);
-      // From W3C filter-effects spec:
       this.multiply([
         0.213 + cos * 0.787 - sin * 0.213,
         0.715 - cos * 0.715 - sin * 0.715,
@@ -143,7 +145,6 @@
         0.072 + cos * 0.928 + sin * 0.072
       ]);
     }
-
     grayscale(value = 1) {
       this.multiply([
         0.2126 + 0.7874 * (1 - value),
@@ -157,7 +158,6 @@
         0.0722 + 0.9278 * (1 - value)
       ]);
     }
-
     sepia(value = 1) {
       this.multiply([
         0.393 + 0.607 * (1 - value),
@@ -171,7 +171,6 @@
         0.131 + 0.869 * (1 - value)
       ]);
     }
-
     saturate(value = 1) {
       this.multiply([
         0.213 + 0.787 * value,
@@ -185,19 +184,16 @@
         0.072 + 0.928 * value
       ]);
     }
-
     brightness(value = 1) {
       this.r = Color.clamp(this.r * value);
       this.g = Color.clamp(this.g * value);
       this.b = Color.clamp(this.b * value);
     }
-
     contrast(value = 1) {
       this.r = Color.clamp((this.r - 128) * value + 128);
       this.g = Color.clamp((this.g - 128) * value + 128);
       this.b = Color.clamp((this.b - 128) * value + 128);
     }
-
     invert(value = 1) {
       this.r = Color.clamp((1 - value) * this.r + value * (255 - this.r));
       this.g = Color.clamp((1 - value) * this.g + value * (255 - this.g));
@@ -205,20 +201,15 @@
     }
   }
 
-
-  //
-  // == Solver with Auto-Retry (loss ≤ 8) ==
-  //
+  // Solver with Auto-Retry, asynchronous with progress callback
   class AutoRetrySolver {
-    constructor(targetColor) {
+    constructor(targetColor, onProgress) {
       this.target = targetColor;
-      // No fixed "starting params"; we randomize each pass anyway
       this.bestParams = null;
       this.bestLoss = Infinity;
+      this.attempts = 0;
+      this.onProgress = onProgress;
     }
-
-    // Given a parameter array [invert, sepia, saturate, hue, brightness, contrast],
-    // apply all filters to pure white (255,255,255) → returns a Color instance.
     _applyFilters(params) {
       const c = new Color(255, 255, 255);
       c.invert(params[0]);
@@ -229,41 +220,26 @@
       c.contrast(params[5]);
       return c;
     }
-
-    // Squared-error loss between "filtered white" and target
     _loss(params) {
       const c = this._applyFilters(params);
       return (c.r - this.target.r) ** 2 +
              (c.g - this.target.g) ** 2 +
              (c.b - this.target.b) ** 2;
     }
-
-    // One stochastic pass: start from startParams, run `iterations` with initial `temp`, return best found.
     _stochasticPass(startParams, iterations, temp) {
       let current = [...startParams];
       let currentLoss = this._loss(current);
       let best = { params: [...current], loss: currentLoss };
-
       for (let i = 0; i < iterations; i++) {
-        const t = temp * (1 - i / iterations);  // cooling schedule
+        const t = temp * (1 - i / iterations);
         const candidate = current.map((v, idx) => {
-          // Each parameter's valid range
-          const ranges = [
-            [0, 1],      // invert
-            [0, 1],      // sepia
-            [0, 20],     // saturate (wider range)
-            [0, 360],    // hue-rotate
-            [0, 20],     // brightness (wider)
-            [0, 20]      // contrast (wider)
-          ];
+          const ranges = [ [0,1], [0,1], [0,20], [0,360], [0,20], [0,20] ];
           const [minV, maxV] = ranges[idx];
           const delta = (Math.random() * 2 - 1) * (maxV - minV) * t;
           let next = v + delta;
           return Math.max(minV, Math.min(maxV, next));
         });
-
         const loss = this._loss(candidate);
-        // Accept if better OR with probability e^((currentLoss-loss)/t)
         if (loss < currentLoss || Math.random() < Math.exp((currentLoss - loss) / t)) {
           current = candidate;
           currentLoss = loss;
@@ -272,43 +248,95 @@
           best = { params: [...current], loss: currentLoss };
         }
       }
-
       return best;
     }
 
-    // Run multiple "coarse→fine" passes until loss ≤ 8, then return the best set.
-    solve() {
-      // We'll keep trying until we hit loss ≤ 8.
-      // Each attempt does: random start → 3 000 coarse @ temp=0.5 → 7 000 fine @ temp=0.025
-      // If result.loss > 8, we just go again.
+    async solve() {
       while (true) {
-        // Randomize start params
+        this.attempts++;
+        if (typeof this.onProgress === 'function') {
+          this.onProgress(this.attempts);
+        }
+        await new Promise(resolve => setTimeout(resolve, 0));
+
         const randomStart = [
-          Math.random(),           // invert ∈ [0,1]
-          Math.random(),           // sepia ∈ [0,1]
-          1 + Math.random() * 19,  // saturate ∈ [1,20]
-          Math.random() * 360,     // hue ∈ [0,360)
-          1 + Math.random() * 19,  // brightness ∈ [1,20]
-          1 + Math.random() * 19   // contrast ∈ [1,20]
+          Math.random(), Math.random(), 1 + Math.random() * 19,
+          Math.random() * 360, 1 + Math.random() * 19, 1 + Math.random() * 19
         ];
-
-        // Phase 1 (coarse search)
         const phase1 = this._stochasticPass(randomStart, 3000, 0.5);
-        // Phase 2 (fine search)
-        const phase2 = this._stochasticPass(phase1.params, 7000, 0.025);
+        await new Promise(resolve => setTimeout(resolve, 0));
 
-        if (phase2.loss <= 8) {
-          // Acceptable match
+        const phase2 = this._stochasticPass(phase1.params, 7000, 0.025);
+        if (phase2.loss <= 1) {
           this.bestParams = phase2.params;
           this.bestLoss = phase2.loss;
-          return { params: this.bestParams, loss: this.bestLoss };
+          return { params: this.bestParams, loss: this.bestLoss, attempts: this.attempts };
         }
-        // Otherwise: loop and try again
+        await new Promise(resolve => setTimeout(resolve, 0));
       }
     }
   }
 
-  // Convert "#abc" or "#aabbcc" → Color instance
+  // Parse various color formats to Color instance
+  function parseColorString(input) {
+    input = input.trim().toLowerCase();
+    // Hex
+    if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(input)) {
+      return hexToColor(input);
+    }
+    // rgb/rgba or hsl/hsla or named via browser
+    const dummy = document.createElement('div');
+    dummy.style.color = input;
+    document.body.appendChild(dummy);
+    const cs = getComputedStyle(dummy).color;
+    document.body.removeChild(dummy);
+    if (cs && cs.startsWith('rgb')) {
+      const vals = cs.match(/rgba?\(([^)]+)\)/i);
+      if (vals) {
+        const parts = vals[1].split(',').map(s => parseFloat(s));
+        if (parts.length >= 3) {
+          return new Color(parts[0], parts[1], parts[2]);
+        }
+      }
+    }
+    // hsv(h, s%, v%)
+    const hsvMatch = input.match(/hsv\(\s*([\d.]+)(deg|)\s*,\s*([\d.]+)%\s*,\s*([\d.]+)%\s*\)/i);
+    if (hsvMatch) {
+      let h = parseFloat(hsvMatch[1]);
+      const s = parseFloat(hsvMatch[3]) / 100;
+      const v = parseFloat(hsvMatch[4]) / 100;
+      h = ((h % 360) + 360) % 360;
+      const c = v * s;
+      const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+      let r1 = 0, g1 = 0, b1 = 0;
+      if (h < 60) [r1, g1, b1] = [c, x, 0];
+      else if (h < 120) [r1, g1, b1] = [x, c, 0];
+      else if (h < 180) [r1, g1, b1] = [0, c, x];
+      else if (h < 240) [r1, g1, b1] = [0, x, c];
+      else if (h < 300) [r1, g1, b1] = [x, 0, c];
+      else [r1, g1, b1] = [c, 0, x];
+      const m = v - c;
+      return new Color((r1 + m) * 255, (g1 + m) * 255, (b1 + m) * 255);
+    }
+    // cmyk(c%, m%, y%, k%)
+    const cmykMatch = input.match(/cmyk\(\s*([\d.]+)%?\s*,\s*([\d.]+)%?\s*,\s*([\d.]+)%?\s*,\s*([\d.]+)%?\s*\)/i);
+    if (cmykMatch) {
+      let c = parseFloat(cmykMatch[1]);
+      let m = parseFloat(cmykMatch[2]);
+      let y = parseFloat(cmykMatch[3]);
+      let k = parseFloat(cmykMatch[4]);
+      c = (input.includes('%')) ? c/100 : (c > 1 ? c/100 : c);
+      m = (input.includes('%')) ? m/100 : (m > 1 ? m/100 : m);
+      y = (input.includes('%')) ? y/100 : (y > 1 ? y/100 : y);
+      k = (input.includes('%')) ? k/100 : (k > 1 ? k/100 : k);
+      const r = 255 * (1 - c) * (1 - k);
+      const g = 255 * (1 - m) * (1 - k);
+      const b = 255 * (1 - y) * (1 - k);
+      return new Color(r, g, b);
+    }
+    return null;
+  }
+
   function hexToColor(hex) {
     if (hex.startsWith('#')) hex = hex.slice(1);
     if (hex.length === 3) {
@@ -321,7 +349,6 @@
     return new Color(r, g, b);
   }
 
-  // Build the single CSS filter string from [invert, sepia, saturate, hue, brightness, contrast]
   function buildFilterString([invert, sepia, saturate, hue, brightness, contrast]) {
     const parts = [];
     parts.push(`invert(${(invert * 100).toFixed(1)}%)`);
@@ -340,13 +367,22 @@
     const filterPixel = document.querySelector('.filterPixel');
     const filterDetail = document.querySelector('.filterDetail');
     const lossDetail = document.querySelector('.lossDetail');
+    const retryDetail = document.querySelector('.retryDetail');
     const copyBtn = document.getElementById('copy-btn');
 
-    function updateReal(hex) {
-      realPixel.style.backgroundColor = hex;
+    function updateRealColorPreview() {
+      const val = input.value.trim();
+      const col = parseColorString(val);
+      if (col) {
+        realPixel.style.backgroundColor = col.toString();
+        input.classList.remove('invalid');
+      } else {
+        input.classList.add('invalid');
+      }
     }
 
-    // Copy the filter string into the clipboard
+    input.addEventListener('input', updateRealColorPreview);
+
     copyBtn.addEventListener('click', () => {
       const text = filterDetail.textContent.trim();
       if (text && text !== '–') {
@@ -356,8 +392,8 @@
             copyBtn.textContent = 'Copied!';
             copyBtn.classList.add('bg-green-100', 'text-green-700');
             copyBtn.classList.remove('bg-gray-100', 'text-gray-700');
-            setTimeout(() => { 
-              copyBtn.textContent = original; 
+            setTimeout(() => {
+              copyBtn.textContent = original;
               copyBtn.classList.remove('bg-green-100', 'text-green-700');
               copyBtn.classList.add('bg-gray-100', 'text-gray-700');
             }, 1500);
@@ -370,39 +406,40 @@
       }
     });
 
-    btn.addEventListener('click', () => {
-      let hex = input.value.trim();
-      if (!/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(hex)) {
-        alert('Please enter a valid 3- or 6-digit hex code (e.g. #f06 or #33ccff).');
+    btn.addEventListener('click', async () => {
+      const val = input.value.trim();
+      const targetColor = parseColorString(val);
+      if (!targetColor) {
+        alert('Please enter a valid color format (e.g. #f06, rgb(...), hsl(...), hsv(...), cmyk(...), or color name).');
         return;
       }
-
-      const targetColor = hexToColor(hex);
-      updateReal(hex);
-
+      updateRealColorPreview();
       btn.textContent = 'Generating...';
       btn.disabled = true;
       filterDetail.textContent = '–';
       lossDetail.textContent = '–';
-      filterPixel.style.filter = ''; 
+      retryDetail.textContent = '0';
+      filterPixel.style.filter = '';
 
-      // Delay slightly so the UI updates before the heavy loop starts
-      setTimeout(() => {
-        const solver = new AutoRetrySolver(targetColor);
-        const { params, loss } = solver.solve();
+      const onProgress = (attempts) => {
+        retryDetail.textContent = attempts;
+      };
+
+      setTimeout(async () => {
+        const solver = new AutoRetrySolver(targetColor, onProgress);
+        const { params, loss, attempts } = await solver.solve();
         const filterStr = buildFilterString(params);
-
         filterPixel.style.filter = filterStr;
         filterDetail.textContent = filterStr;
-        lossDetail.textContent = loss.toFixed(2);
-
+        lossDetail.textContent = loss.toFixed(4);
+        retryDetail.textContent = attempts;
         btn.textContent = 'Generate';
         btn.disabled = false;
       }, 20);
     });
 
-    // On initial load, show the default "real" color
-    updateReal(input.value);
+    // Initial preview
+    updateRealColorPreview();
     filterPixel.style.filter = '';
   });
   </script>
