@@ -1,431 +1,459 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Credit Tracker</title>
+    <title>Money Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
-        html, body { 
-            height: 100%; 
-            margin: 0; 
-        }
-        .chat-scroll {
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
-        .chat-scroll::-webkit-scrollbar {
-            display: none;
-        }
-		#shadowo {
-			box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
-		}
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+
+      .chat-scroll {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+
+      .chat-scroll::-webkit-scrollbar {
+        display: none;
+      }
+
+      #shadowo {
+        box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
+      }
     </style>
-</head>
-<body class="bg-grey-200 dark:bg-gray-900">
+  </head>
+  <body class="bg-grey-200 dark:bg-gray-900">
     <div id="app" class="h-screen flex flex-col"></div>
-
     <script>
-        // Data management functions
-        function loadFromStorage() {
-            const data = localStorage.getItem('customers');
-            return data ? JSON.parse(data) : [];
+      // Data management functions
+      function loadFromStorage() {
+        const data = localStorage.getItem('customers');
+        return data ? JSON.parse(data) : [];
+      }
+
+      function saveToStorage(customers) {
+        localStorage.setItem('customers', JSON.stringify(customers));
+      }
+
+      function generateId() {
+        return Date.now().toString(36) + Math.random().toString(36).substr(2);
+      }
+      // Date formatting functions
+      function formatDate(timestamp) {
+        const date = new Date(timestamp);
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+        const messageDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        const timeStr = date.toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        });
+        if (messageDate.getTime() === today.getTime()) {
+          return `Today ${timeStr}`;
+        } else if (messageDate.getTime() === yesterday.getTime()) {
+          return `Yesterday ${timeStr}`;
+        } else {
+          return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${timeStr}`;
         }
+      }
+      // Dashboard calculation functions
+      function getAllTimeBalance() {
+        return loadFromStorage().flatMap(c => c.transactions).reduce((sum, txn) => sum + txn.amount, 0);
+      }
 
-        function saveToStorage(customers) {
-            localStorage.setItem('customers', JSON.stringify(customers));
-        }
-
-        function generateId() {
-            return Date.now().toString(36) + Math.random().toString(36).substr(2);
-        }
-
-        // Date formatting functions
-        function formatDate(timestamp) {
-            const date = new Date(timestamp);
-            const now = new Date();
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
-            const messageDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-
-            const timeStr = date.toLocaleTimeString('en-US', { 
-                hour: '2-digit', 
-                minute: '2-digit', 
-                hour12: false 
-            });
-
-            if (messageDate.getTime() === today.getTime()) {
-                return `Today ${timeStr}`;
-            } else if (messageDate.getTime() === yesterday.getTime()) {
-                return `Yesterday ${timeStr}`;
-            } else {
-                return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${timeStr}`;
+      function getTodaySummary() {
+        const now = new Date();
+        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+        const end = start + 24 * 60 * 60 * 1000;
+        let taken = 0,
+          given = 0;
+        loadFromStorage().forEach(customer => {
+          customer.transactions.forEach(txn => {
+            const t = new Date(txn.timestamp).getTime();
+            if (t >= start && t < end) {
+              if (txn.amount > 0) taken += txn.amount;
+              else given += -txn.amount;
             }
-        }
+          });
+        });
+        return {
+          taken,
+          given,
+          net: taken - given
+        };
+      }
 
-        // Dashboard calculation functions
-        function getAllTimeBalance() {
-            const customers = loadFromStorage();
-            let total = 0;
-            customers.forEach(customer => {
-                customer.transactions.forEach(txn => {
-                    if (txn.type === 'taken') {
-                        total += txn.amount;
-                    } else {
-                        total -= txn.amount;
-                    }
-                });
-            });
-            return total;
-        }
+      function getCustomerTodayBalance(customer) {
+        // renamed “today” function now returns all-time balance
+        return customer.transactions.reduce((sum, txn) => sum + txn.amount, 0);
+      }
 
-        function getTodaySummary() {
-            const customers = loadFromStorage();
-            const today = new Date();
-            const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
-            const todayEnd = todayStart + 24 * 60 * 60 * 1000;
+      function getLastTransactionTime(customer) {
+        const txns = customer.transactions;
+        if (!txns.length) return null;
+        return formatDate(txns[txns.length - 1].timestamp);
+      }
+      // Customer management functions
+      function addCustomer(name) {
+        const customers = loadFromStorage();
+        const newCustomer = {
+          id: generateId(),
+          name: name.trim(),
+          transactions: []
+        };
+        customers.unshift(newCustomer);
+        saveToStorage(customers);
+        return newCustomer;
+      }
 
-            let givenToday = 0;
-            let takenToday = 0;
-
-            customers.forEach(customer => {
-                customer.transactions.forEach(txn => {
-                    const txnTime = new Date(txn.timestamp).getTime();
-                    if (txnTime >= todayStart && txnTime < todayEnd) {
-                        if (txn.type === 'given') {
-                            givenToday += txn.amount;
-                        } else {
-                            takenToday += txn.amount;
-                        }
-                    }
-                });
-            });
-
-            return {
-                given: givenToday,
-                taken: takenToday,
-                net: takenToday - givenToday
-            };
-        }
-
-        function getCustomerTodayBalance(customer) {
-            const today = new Date();
-            const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
-            const todayEnd = todayStart + 24 * 60 * 60 * 1000;
-
-            let balance = 0;
-            customer.transactions.forEach(txn => {
-                const txnTime = new Date(txn.timestamp).getTime();
-                if (txnTime >= todayStart && txnTime < todayEnd) {
-                    if (txn.type === 'taken') {
-                        balance += txn.amount;
-                    } else {
-                        balance -= txn.amount;
-                    }
-                }
-            });
-            return balance;
-        }
-
-        function getLastTransactionTime(customer) {
-            if (customer.transactions.length === 0) return null;
-            const lastTxn = customer.transactions[customer.transactions.length - 1];
-            return formatDate(lastTxn.timestamp);
-        }
-
-        // Customer management functions
-        function addCustomer(name) {
-            const customers = loadFromStorage();
-            const newCustomer = {
-                id: generateId(),
-                name: name.trim(),
-                transactions: []
-            };
-            customers.unshift(newCustomer);
-            saveToStorage(customers);
-            return newCustomer;
-        }
-
-        function addTransaction(customerId, amount, type) {
-            const customers = loadFromStorage();
-            const customer = customers.find(c => c.id === customerId);
-            if (!customer) return false;
-
-            const transaction = {
-                id: generateId(),
-                amount: parseFloat(amount),
-                type: type,
-                timestamp: new Date().toISOString()
-            };
-
-            customer.transactions.push(transaction);
-            
-            // Move customer to top of list (most recent activity)
-            const customerIndex = customers.findIndex(c => c.id === customerId);
-            const [movedCustomer] = customers.splice(customerIndex, 1);
-            customers.unshift(movedCustomer);
-            
-            saveToStorage(customers);
-            return true;
-        }
-
-        // Navigation state
-        let currentView = 'home';
-        let currentCustomerId = null;
-
-        // Render functions
-        function renderDashboard() {
-            const allTimeBalance = getAllTimeBalance();
-            const todaySummary = getTodaySummary();
-
-            return `
-                <div class="bg-gray-100 dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700" id="shadowo">
-                    <!-- Total Balance Row -->
-                    <div class="px-4 py-3 border-b border-gray-300 dark:border-gray-700">
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm text-gray-600 dark:text-gray-400">Total Balance</span>
-                            <span class="text-xl font-bold ${allTimeBalance >= 0 ? 'text-green-600' : 'text-red-500'}">
+      function addTransaction(customerId, rawAmount, isTaken) {
+        const customers = loadFromStorage();
+        const customer = customers.find(c => c.id === customerId);
+        if (!customer) return false;
+        // create signed amount
+        const signedAmount = parseFloat(rawAmount) * (isTaken ? 1 : -1);
+        const timestamp = new Date().toISOString();
+        // transaction id is timestamp itself
+        const transaction = {
+          amount: signedAmount,
+          timestamp: timestamp
+        };
+        customer.transactions.push(transaction);
+        // re-order by most recent activity
+        const idx = customers.findIndex(c => c.id === customerId);
+        customers.unshift(customers.splice(idx, 1)[0]);
+        saveToStorage(customers);
+        return true;
+      }
+      // Navigation state
+      let currentView = 'home';
+      let currentCustomerId = null;
+      // Render functions
+      function renderDashboard() {
+        const allTimeBalance = getAllTimeBalance();
+        const todaySummary = getTodaySummary();
+        return `
+                
+						<div class="bg-gray-100 dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700" id="shadowo">
+							<!-- Total Balance Row -->
+							<div class="px-4 py-3 border-b border-gray-300 dark:border-gray-700">
+								<div class="flex justify-between items-center">
+									<span class="text-sm text-gray-600 dark:text-gray-400">Total Balance</span>
+									<span class="text-xl font-bold ${allTimeBalance >= 0 ? 'text-green-600' : 'text-red-500'}">
                                 ₹${Math.abs(allTimeBalance).toLocaleString('en-IN')}${allTimeBalance < 0 ? '' : ''}
-                            </span>
-                        </div>
-                    </div>
-                    
-                    <!-- Today's Summary Table -->
-                    <div class="px-4 py-2">
-                        <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">Today's Activity</div>
-                        <div class="grid grid-cols-3 gap-4 text-sm">
-                            <div class="text-center">
-                                <div class="flex items-center justify-center mb-1">
-                                    <i class="material-icons text-green-600 text-sm mr-1">trending_down</i>
-                                    <span class="text-xs text-gray-600 dark:text-gray-400">Taken</span>
-                                </div>
-                                <div class="font-semibold text-green-600">₹${todaySummary.taken.toLocaleString('en-IN')}</div>
-                            </div>
                             
-                            <div class="text-center">
-                                <div class="flex items-center justify-center mb-1">
-                                    <i class="material-icons text-blue-600 text-sm mr-1">account_balance</i>
-                                    <span class="text-xs text-gray-600 dark:text-gray-400">Net</span>
-                                </div>
-                                <div class="font-semibold ${todaySummary.net >= 0 ? 'text-blue-600' : 'text-red-500'}">
+									</span>
+								</div>
+							</div>
+							<!-- Today's Summary Table -->
+							<div class="px-4 py-2">
+								<div class="text-xs text-gray-500 dark:text-gray-400 mb-2">Today's Activity</div>
+								<div class="grid grid-cols-3 gap-4 text-sm">
+									<div class="text-center">
+										<div class="flex items-center justify-center mb-1">
+											<i class="material-icons text-green-600 text-sm mr-1">trending_down</i>
+											<span class="text-xs text-gray-600 dark:text-gray-400">Taken</span>
+										</div>
+										<div class="font-semibold text-green-600">₹${todaySummary.taken.toLocaleString('en-IN')}</div>
+									</div>
+									<div class="text-center">
+										<div class="flex items-center justify-center mb-1">
+											<i class="material-icons text-blue-600 text-sm mr-1">account_balance</i>
+											<span class="text-xs text-gray-600 dark:text-gray-400">Net</span>
+										</div>
+										<div class="font-semibold ${todaySummary.net >= 0 ? 'text-blue-600' : 'text-red-500'}">
                                     ₹${todaySummary.net >= 0 ? '+' : ''}${todaySummary.net.toLocaleString('en-IN')}
                                 </div>
-                            </div>
-                            
-                            <div class="text-center">
-                                <div class="flex items-center justify-center mb-1">
-                                    <i class="material-icons text-red-600 text-sm mr-1">trending_up</i>
-                                    <span class="text-xs text-gray-600 dark:text-gray-400">Given</span>
-                                </div>
-                                <div class="font-semibold text-red-600">₹${todaySummary.given.toLocaleString('en-IN')}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+									</div>
+									<div class="text-center">
+										<div class="flex items-center justify-center mb-1">
+											<i class="material-icons text-red-600 text-sm mr-1">trending_up</i>
+											<span class="text-xs text-gray-600 dark:text-gray-400">Given</span>
+										</div>
+										<div class="font-semibold text-red-600">₹${todaySummary.given.toLocaleString('en-IN')}</div>
+									</div>
+								</div>
+							</div>
+						</div>
             `;
-        }
+      }
 
-        function renderCustomerList() {
-            const customers = loadFromStorage();
-            
-            if (customers.length === 0) {
-                return `
-                    <div class="flex-1 flex items-center justify-center text-gray-500 dark:text-gray-400">
-                        <div class="text-center">
-                            <i class="material-icons text-4xl mb-2">people_outline</i>
-                            <p>No customers yet</p>
-                            <p class="text-sm">Tap + to add your first customer</p>
-                        </div>
-                    </div>
+      function renderCustomerList() {
+        const customers = loadFromStorage();
+        if (customers.length === 0) {
+          return `
+                    
+						<div class="flex-1 flex items-center justify-center text-gray-500 dark:text-gray-400">
+							<div class="text-center">
+								<i class="material-icons text-4xl mb-2">people_outline</i>
+								<p>No customers yet</p>
+								<p class="text-sm">Tap + to add your first customer</p>
+							</div>
+						</div>
                 `;
-            }
-
-            return `
-                <div class="flex-1 overflow-y-auto">
+        }
+        return `
+                
+						<div class="flex-1 overflow-y-auto">
                     ${customers.map(customer => {
                         const todayBalance = getCustomerTodayBalance(customer);
                         const lastTime = getLastTransactionTime(customer);
                         
                         return `
-                            <div class="px-4 py-3 flex justify-between items-center border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
-                                 onclick="openChat('${customer.id}')">
-                                <span class="font-medium truncate">${customer.name}</span>
-                                <div class="text-right text-sm">
-                                    <div class="font-semibold ${todayBalance > 0 ? 'text-green-600' : todayBalance < 0 ? 'text-red-500' : 'text-gray-500'}">
+                            
+							<div class="px-4 py-3 flex justify-between items-center border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
+                                 onclick="openChat('${customer.id}')"
+                                 oncontextmenu="copyCustomerIdToClipboard('${customer.id}'); return false;">
+								<span class="font-medium truncate">${customer.name}</span>
+								<div class="text-right text-sm">
+									<div class="font-semibold ${todayBalance > 0 ? 'text-green-600' : todayBalance < 0 ? 'text-red-500' : 'text-gray-500'}">
                                         ${todayBalance !== 0 ? (todayBalance > 0 ? '+' : '') + '₹' + Math.abs(todayBalance).toLocaleString('en-IN') : '₹0'}
-                                    </div>
-                                    <div class="text-xs text-gray-500">${lastTime || 'No transactions'}</div>
-                                </div>
-                            </div>
+                                    
+									</div>
+									<div class="text-xs text-gray-500">${lastTime || 'No transactions'}</div>
+								</div>
+							</div>
                         `;
                     }).join('')}
-                </div>
+                
+						</div>
             `;
-        }
+      }
 
-        function renderHome() {
-            return `
+      function renderHome() {
+        return `
                 ${renderDashboard()}
                 ${renderCustomerList()}
                 
-                <!-- Floating Add Button -->
-                <button class="fixed bottom-4 right-4 w-12 h-12 bg-gray-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-gray-700 active:scale-95 transition-all"
+                
+						<!-- Floating Add Button -->
+						<button class="fixed bottom-4 right-4 w-12 h-12 bg-gray-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-gray-700 active:scale-95 transition-all"
                         onclick="showAddCustomerPrompt()">
-                    <i class="material-icons">add</i>
-                </button>
+							<i class="material-icons">add</i>
+						</button>
             `;
+      }
+
+      function renderChat(customerId) {
+        const customers = loadFromStorage();
+        const customer = customers.find(c => c.id === customerId);
+        if (!customer) {
+          currentView = 'home';
+          render();
+          return;
         }
-
-        function renderChat(customerId) {
-            const customers = loadFromStorage();
-            const customer = customers.find(c => c.id === customerId);
-            if (!customer) {
-                currentView = 'home';
-                render();
-                return;
-            }
-
-            const transactions = customer.transactions.slice(); // Show oldest first (like chat apps)
-
-            return `
-                <!-- Header -->
-                <div class="px-3 py-3 flex items-center bg-gray-100 dark:bg-gray-800 shadow-sm" id="shadowo">
-                    <button class="mr-3 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 flex items-center justify-center" onclick="goHome()">
-                       <i class="material-icons">arrow_back</i>
-                    </button>
-                    <span class="text-lg font-medium truncate">${customer.name}</span>
-                </div>
-
-                <!-- Message List -->
-                <div id="chat-messages" class="flex-1 overflow-y-auto chat-scroll p-4 space-y-3 flex flex-col">
+        const transactions = customer.transactions.slice(); // Show oldest first (like chat apps)
+        return `
+                
+						<!-- Header -->
+						<div class="px-3 py-3 flex items-center bg-gray-100 dark:bg-gray-800 shadow-sm" id="shadowo">
+							<button class="mr-3 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 flex items-center justify-center" onclick="goHome()">
+								<i class="material-icons">arrow_back</i>
+							</button>
+							<span class="text-lg font-medium truncate">${customer.name}</span>
+						</div>
+						<!-- Message List -->
+						<div id="chat-messages" class="flex-1 overflow-y-auto chat-scroll p-4 space-y-3 flex flex-col">
                     ${transactions.length === 0 ? `
-                        <div class="text-center text-gray-500 dark:text-gray-400 mt-8">
-                            <i class="material-icons text-3xl mb-2">chat_bubble_outline</i>
-                            <p>No transactions yet</p>
-                            <p class="text-sm">Add your first transaction below</p>
-                        </div>
+                        
+							<div class="text-center text-gray-500 dark:text-gray-400 mt-8">
+								<i class="material-icons text-3xl mb-2">chat_bubble_outline</i>
+								<p>No transactions yet</p>
+								<p class="text-sm">Add your first transaction below</p>
+							</div>
                     ` : transactions.map(txn => `
-                        <div class="flex ${txn.type === 'taken' ? 'justify-start' : 'justify-end'}">
-                            <div class="max-w-xs px-3 py-2 rounded-lg text-sm ${
-                                txn.type === 'taken' 
-                                    ? 'bg-green-100 dark:bg-green-800 text-green-900 dark:text-green-100' 
-                                    : 'bg-red-100 dark:bg-red-800 text-red-900 dark:text-red-100'
-                            }">
-                                <div class="font-semibold">₹${txn.amount.toLocaleString('en-IN')}</div>
-                                <div class="text-xs opacity-75 mt-1">${formatDate(txn.timestamp)}</div>
-                            </div>
-                        </div>
+                        
+							<div class="flex ${txn.amount > 0 ? 'justify-start' : 'justify-end'} mb-2">
+								<div
+      class="flex flex-col items-start min-w-[150px] max-w-xs px-3 py-2 rounded-lg text-sm ${
+        txn.amount > 0
+          ? 'bg-green-100 dark:bg-green-800 text-green-900 dark:text-green-100'
+          : 'bg-red-100   dark:bg-red-800   text-red-900   dark:text-red-100'
+      }"
+      oncontextmenu="copyTimestampToClipboard('${txn.timestamp}'); return false;"
+    >
+									<div class="font-semibold text-left leading-tight">
+        ₹${Math.abs(txn.amount).toLocaleString('en-IN')}
+      </div>
+									<div class="text-xs opacity-75 mt-0.5 text-left leading-snug">
+        ${formatDate(txn.timestamp)}
+      </div>
+								</div>
+							</div>
                     `).join('')}
-                    <div id="scroll-anchor"></div>
-                </div>
-
-                <!-- Input Section -->
-                <div class="p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
-                    <!-- Action Buttons Row -->
-                    <div class="flex space-x-2 mb-5">
-                        <button id="taken-btn" class="flex-1 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 active:opacity-80 transition-all"
-                                onclick="submitTransaction('taken')">
-                            <i class="material-icons text-sm mr-1">arrow_downward</i>
+                    
+							<div id="scroll-anchor"></div>
+						</div>
+						<!-- Input Section -->
+						<div class="p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+							<!-- Action Buttons Row -->
+							<div class="flex space-x-2 mb-5">
+								<button id="taken-btn" class="flex-1 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 active:opacity-80 transition-all"
+                                onclick="submitTransaction(true)">
+									<i class="material-icons text-sm mr-1">arrow_downward</i>
                             Taken
-                        </button>
-                        <button id="given-btn" class="flex-1 py-2 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 active:opacity-80 transition-all"
-                                onclick="submitTransaction('given')">
-                            <i class="material-icons text-sm mr-1">arrow_upward</i>
+                        
+								</button>
+								<button id="given-btn" class="flex-1 py-2 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 active:opacity-80 transition-all"
+                                onclick="submitTransaction(false)">
+									<i class="material-icons text-sm mr-1">arrow_upward</i>
                             Given
-                        </button>
-                    </div>
-
-                    <!-- Amount Input Row -->
-                    <div class="relative">
-                        <span class="absolute left-0 top-1.5 text-lg text-gray-500">₹</span>
-                        <input id="amount-input" type="number" step="0.01" placeholder="0.00"
+                        
+								</button>
+							</div>
+							<!-- Amount Input Row -->
+							<div class="relative">
+								<span class="absolute left-0 top-1.5 text-lg text-gray-500">₹</span>
+								<input id="amount-input" type="number" step="0.01" placeholder="0.00"
                                class="w-full pl-6 pr-2 py-1 bg-transparent border-b border-gray-400 focus:border-black dark:focus:border-white outline-none text-base"
                                onkeypress="if(event.key==='Enter') document.getElementById('taken-btn').focus()"/>
-                    </div>
-                </div>
+							</div>
+						</div>
             `;
-        }
-
-        // Navigation functions
-        function render() {
-            const app = document.getElementById('app');
-            
-            if (currentView === 'home') {
-                app.innerHTML = renderHome();
-            } else if (currentView === 'chat') {
-                app.innerHTML = renderChat(currentCustomerId);
-                // Auto-focus amount input and scroll to bottom if there are transactions (only on initial load)
-                setTimeout(() => {
-                    const input = document.getElementById('amount-input');
-                    if (input && !input.dataset.noFocus) {
-                        
-                        input.dataset.noFocus = 'true'; // Prevent future auto-focus
-                    }
-                    
-                    const scrollAnchor = document.getElementById('scroll-anchor');
-                    if (scrollAnchor) {
-                        scrollAnchor.scrollIntoView();
-                    }
-                }, 100);
+      }
+      // Navigation functions
+      function render() {
+        const app = document.getElementById('app');
+        if (currentView === 'home') {
+          app.innerHTML = renderHome();
+        } else if (currentView === 'chat') {
+          app.innerHTML = renderChat(currentCustomerId);
+          // Auto-focus amount input and scroll to bottom if there are transactions (only on initial load)
+          setTimeout(() => {
+            const input = document.getElementById('amount-input');
+            if (input && !input.dataset.noFocus) {
+              input.dataset.noFocus = 'true'; // Prevent future auto-focus
             }
-        }
-
-        function goHome() {
-            currentView = 'home';
-            currentCustomerId = null;
-            render();
-        }
-
-        function openChat(customerId) {
-            currentView = 'chat';
-            currentCustomerId = customerId;
-            render();
-        }
-
-        // Action functions
-        function showAddCustomerPrompt() {
-            const name = prompt('Enter customer name:');
-            if (name && name.trim()) {
-                const customer = addCustomer(name);
-                render(); // Refresh home view
+            const scrollAnchor = document.getElementById('scroll-anchor');
+            if (scrollAnchor) {
+              scrollAnchor.scrollIntoView();
             }
+          }, 100);
         }
+      }
 
-        function submitTransaction(type) {
-            const amountInput = document.getElementById('amount-input');
-            const amount = parseFloat(amountInput.value);
-            
-            if (!amount || amount <= 0) {
-                amountInput.focus();
-                return;
-            }
+      function goHome() {
+        currentView = 'home';
+        currentCustomerId = null;
+        render();
+      }
 
-            if (addTransaction(currentCustomerId, amount, type)) {
-                amountInput.value = '';
-                render(); // Re-render chat to show new transaction
-                
-                // Scroll to bottom after a brief delay
-                setTimeout(() => {
-                    const scrollAnchor = document.getElementById('scroll-anchor');
-                    if (scrollAnchor) {
-                        scrollAnchor.scrollIntoView({ behavior: 'smooth' });
-                    }
-                }, 50);
-            }
+      function openChat(customerId) {
+        currentView = 'chat';
+        currentCustomerId = customerId;
+        render();
+      }
+      // Action functions
+      function showAddCustomerPrompt() {
+        const name = prompt('Enter customer name:');
+        if (name && name.trim()) {
+          const customer = addCustomer(name);
+          render(); // Refresh home view
         }
+      }
 
-        // Initialize app
-        document.addEventListener('DOMContentLoaded', function() {
-            render();
+      function copyTimestampToClipboard(timestamp) {
+        navigator.clipboard.writeText(timestamp).then(() => {
+          console.info("Timestamp copied: " + timestamp);
+        }).catch(err => {
+          console.error(err);
         });
+      }
 
-        // Handle back button on mobile
-        window.addEventListener('popstate', function() {
-            if (currentView === 'chat') {
-                goHome();
-            }
+      function copyCustomerIdToClipboard(id) {
+        navigator.clipboard.writeText(id).then(() => {
+          // you can swap alert() out for a toast/snackbar if you like
+          console.info("Customer ID copied: " + id);
+        }).catch(err => {
+          console.error("Could not copy ID", err);
         });
+      }
+
+      function del(...keys) {
+        let customers = loadFromStorage();
+        if (currentView === 'chat' && currentCustomerId) {
+          const customer = customers.find(c => c.id === currentCustomerId);
+          if (!customer) {
+            console.warn('No customer is currently open.');
+            return;
+          }
+          // Track how many we actually remove
+          let removedCount = 0;
+          // For each key: only remove if that timestamp exists in this customer's transactions
+          keys.forEach(key => {
+            const exists = customer.transactions.some(txn => txn.timestamp === key);
+            if (exists) {
+              customer.transactions = customer.transactions.filter(txn => txn.timestamp !== key);
+              removedCount++;
+            } else {
+              console.warn(`Timestamp "${key}" not found for this customer. Make sure you have the right chat open.`);
+            }
+          });
+          if (removedCount) {
+            console.log(`Removed ${removedCount} transaction(s) from "${customer.name}".`);
+            saveToStorage(customers);
+            render(); // re-render the chat view
+          }
+        } else if (currentView === 'home') {
+          const before = customers.length;
+          const updated = customers.filter(c => !keys.includes(c.id));
+          const removed = before - updated.length;
+          if (removed) {
+            console.log(`Removed ${removed} customer(s).`);
+            saveToStorage(updated);
+            render(); // re-render the home view
+          } else {
+            keys.forEach(id => console.warn(`Customer ID "${id}" not found on home screen.`));
+          }
+        } else {
+          console.warn('To delete transactions, open that customer’s chat first. To delete customers, stay on the home screen.');
+        }
+      }
+
+      function submitTransaction(type) {
+        const amountInput = document.getElementById('amount-input');
+        const amount = parseFloat(amountInput.value);
+        if (!amount || amount <= 0) {
+          amountInput.focus();
+          return;
+        }
+        if (addTransaction(currentCustomerId, amount, type)) {
+          amountInput.value = '';
+          render(); // Re-render chat to show new transaction
+          // Scroll to bottom after a brief delay
+          setTimeout(() => {
+            const scrollAnchor = document.getElementById('scroll-anchor');
+            if (scrollAnchor) {
+              scrollAnchor.scrollIntoView({
+                behavior: 'smooth'
+              });
+            }
+          }, 50);
+        }
+      }
+      // Initialize app
+      document.addEventListener('DOMContentLoaded', function() {
+        render();
+        console.log("⠀");
+        console.group('%cdel() Usage', 'color:#e74c3c; font-weight:bold');
+        console.log("• In Chat  ➔  del('ts1', 'ts2', 'ts3')");
+        console.log("• On Home  ➔  del('id1', 'id2', 'id3')");
+        console.groupEnd();
+        console.log("⠀");
+      });
+      // Handle back button on mobile
+      window.addEventListener('popstate', function() {
+        if (currentView === 'chat') {
+          goHome();
+        }
+      });
     </script>
-</body>
+  </body>
 </html>
