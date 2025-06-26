@@ -2,15 +2,27 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+	
     <title>Money Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
+		
+		* {
+  -webkit-user-select: none;  /* Chrome, Safari */
+  -moz-user-select: none;     /* Firefox */
+  -ms-user-select: none;      /* IE10+ */
+  user-select: none;          /* Standard */
+}
+
+
       html,
       body {
         height: 100%;
         margin: 0;
+		-webkit-touch-callout: none;
       }
 
       .chat-scroll {
@@ -240,84 +252,117 @@
 						</button>
             `;
       }
+      
+      const expandedTxns = new Set();
 
       function renderChat(customerId) {
-        const customers = loadFromStorage();
-        const customer = customers.find(c => c.id === customerId);
-        if (!customer) {
-          currentView = 'home';
-          render();
-          return;
-        }
-        const transactions = customer.transactions.slice(); // Show oldest first (like chat apps)
-        return `
-                
-						<!-- Header -->
-						<div class="px-3 py-3 flex items-center bg-gray-100 dark:bg-gray-800 shadow-sm" id="shadowo">
-							<button class="mr-3 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 flex items-center justify-center" onclick="goHome()">
-								<i class="material-icons">arrow_back</i>
-							</button>
-							<span class="text-lg font-medium truncate">${customer.name}</span>
-						</div>
-						<!-- Message List -->
-						<div id="chat-messages" class="flex-1 overflow-y-auto chat-scroll p-4 space-y-3 flex flex-col">
-                    ${transactions.length === 0 ? `
-                        
-							<div class="text-center text-gray-500 dark:text-gray-400 mt-8">
-								<i class="material-icons text-3xl mb-2">chat_bubble_outline</i>
-								<p>No transactions yet</p>
-								<p class="text-sm">Add your first transaction below</p>
-							</div>
-                    ` : transactions.map(txn => `
-                        
-							<div class="flex ${txn.amount > 0 ? 'justify-start' : 'justify-end'} mb-2">
-								<div
-      class="flex flex-col items-start min-w-[150px] max-w-xs px-3 py-2 rounded-lg text-sm ${
-        txn.amount > 0
-          ? 'bg-green-100 dark:bg-green-800 text-green-900 dark:text-green-100'
-          : 'bg-red-100   dark:bg-red-800   text-red-900   dark:text-red-100'
-      }"
-      oncontextmenu="copyTimestampToClipboard('${txn.timestamp}'); return false;"
-    >
-									<div class="font-semibold text-left leading-tight">
-        ₹${Math.abs(txn.amount).toLocaleString('en-IN')}
-      </div>
-									<div class="text-xs opacity-75 mt-0.5 text-left leading-snug">
-        ${formatDate(txn.timestamp)}
-      </div>
-								</div>
-							</div>
-                    `).join('')}
-                    
-							<div id="scroll-anchor"></div>
-						</div>
-						<!-- Input Section -->
-						<div class="p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
-							<!-- Action Buttons Row -->
-							<div class="flex space-x-2 mb-5">
-								<button id="taken-btn" class="flex-1 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 active:opacity-80 transition-all"
-                                onclick="submitTransaction(true)">
-									<i class="material-icons text-sm mr-1">arrow_downward</i>
-                            Taken
-                        
-								</button>
-								<button id="given-btn" class="flex-1 py-2 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 active:opacity-80 transition-all"
-                                onclick="submitTransaction(false)">
-									<i class="material-icons text-sm mr-1">arrow_upward</i>
-                            Given
-                        
-								</button>
-							</div>
-							<!-- Amount Input Row -->
-							<div class="relative">
-								<span class="absolute left-0 top-1.5 text-lg text-gray-500">₹</span>
-								<input id="amount-input" type="number" step="0.01" placeholder="0.00"
-                               class="w-full pl-6 pr-2 py-1 bg-transparent border-b border-gray-400 focus:border-black dark:focus:border-white outline-none text-base"
-                               onkeypress="if(event.key==='Enter') document.getElementById('taken-btn').focus()"/>
-							</div>
-						</div>
-            `;
+  const customers = loadFromStorage();
+  const customer = customers.find(c => c.id === customerId);
+  if (!customer) {
+    currentView = 'home';
+    render();
+    return;
+  }
+
+  // Show oldest first
+  const transactions = customer.transactions.slice();
+
+  return `
+    <!-- Header -->
+    <div class="px-3 py-3 flex items-center bg-gray-100 dark:bg-gray-800 shadow-sm" id="shadowo">
+      <button class="mr-3 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 flex items-center justify-center" onclick="goHome()">
+        <i class="material-icons">arrow_back</i>
+      </button>
+      <span class="text-lg font-medium truncate">${customer.name}</span>
+    </div>
+
+    <!-- Message List -->
+    <div id="chat-messages" class="flex-1 overflow-y-auto chat-scroll p-4 space-y-4 flex flex-col">
+      ${
+        transactions.length === 0
+          ? `
+            <div class="text-center text-gray-500 dark:text-gray-400 mt-8">
+              <i class="material-icons text-3xl mb-2">chat_bubble_outline</i>
+              <p>No transactions yet</p>
+              <p class="text-sm">Add your first transaction below</p>
+            </div>`
+          : transactions.map((txn, index) => {
+              const isExpanded = expandedTxns.has(txn.timestamp);
+              const prevAmount = customer.transactions
+                .slice(0, index)
+                .reduce((sum, t) => sum + t.amount, 0);
+              const netBalance = prevAmount + txn.amount;
+              const currSign = txn.amount >= 0 ? '+' : '–';
+              const prevSign = prevAmount >= 0 ? '+' : '-';
+              const netSign = netBalance >= 0 ? '+' : '–';
+
+              return `
+                <div class="flex ${txn.amount > 0 ? 'justify-start' : 'justify-end'} mb-2">
+                  <div
+                    ondblclick="toggleTxnDetails('${txn.timestamp}')"
+                    oncontextmenu="copyTimestampToClipboard('${txn.timestamp}'); return false;"
+                    class="flex flex-col items-start min-w-[150px] min-h-[60px] max-w-xs px-4 py-3 rounded-lg text-sm ${
+                      txn.amount > 0
+                        ? 'bg-green-100 dark:bg-green-800 text-green-900 dark:text-green-100'
+                        : 'bg-red-100 dark:bg-red-800 text-red-900 dark:text-red-100'
+                    }"
+                  >
+                    ${
+                      isExpanded
+                        ? `
+                          <!-- Expanded view -->
+                          <div class="text-left leading-tight text-xs text-gray-800 mb-0.5">
+                            [ ${prevSign} ₹${Math.abs(prevAmount).toLocaleString('en-IN')} ] ${currSign} ₹${Math.abs(txn.amount).toLocaleString('en-IN')}
+                          </div>
+                          <div class="text-left leading-tight text-sm font-bold text-gray-800">
+                            = ${netSign} ₹${Math.abs(netBalance).toLocaleString('en-IN')}
+                          </div>`
+                        : `
+                          <!-- Collapsed view -->
+                          <div class="font-semibold text-left leading-tight">
+                            <span class="${txn.amount >= 0 ? 'text-green-900 dark:text-green-100' : 'text-red-900 dark:text-red-100'}">₹${Math.abs(txn.amount).toLocaleString('en-IN')}</span>
+                          </div>
+                          <div class="text-xs opacity-75 mt-0.5 text-left leading-snug">
+                            ${formatDate(txn.timestamp)}
+                          </div>`
+                    }
+                  </div>
+                </div>`;
+            }).join('')
       }
+      <div id="scroll-anchor"></div>
+    </div>
+
+    <!-- Input Section -->
+    <div class="p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+      <div class="flex space-x-2 mb-5">
+        <button id="taken-btn" class="flex-1 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 active:opacity-80 transition-all"
+          onclick="submitTransaction(true)">
+          <i class="material-icons text-sm mr-1">arrow_downward</i>
+          Taken
+        </button>
+        <button id="given-btn" class="flex-1 py-2 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 active:opacity-80 transition-all"
+          onclick="submitTransaction(false)">
+          <i class="material-icons text-sm mr-1">arrow_upward</i>
+          Given
+        </button>
+      </div>
+      <div class="relative">
+        <span class="absolute left-0 top-1.5 text-lg text-gray-500">₹</span>
+        <input id="amount-input" type="number" step="0.01" placeholder="0.00"
+          class="w-full pl-6 pr-2 py-1 bg-transparent border-b border-gray-400 focus:border-black dark:focus:border-white outline-none text-base"
+          onkeypress="if(event.key==='Enter') submitTransaction(true)"/>
+      </div>
+    </div>
+  `;
+}
+
+
+
+
+      
+      
+      
       // Navigation functions
       function render() {
         const app = document.getElementById('app');
@@ -416,6 +461,18 @@
           console.warn('To delete transactions, open that customer’s chat first. To delete customers, stay on the home screen.');
         }
       }
+      
+      
+      function toggleTxnDetails(timestamp) {
+  if (expandedTxns.has(timestamp)) {
+    expandedTxns.delete(timestamp);
+  } else {
+    expandedTxns.add(timestamp);
+  }
+  render();
+}
+
+
 
       function submitTransaction(type) {
         const amountInput = document.getElementById('amount-input');
