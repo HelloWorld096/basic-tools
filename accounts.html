@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            font-size: 16px;
+            font-weight: normal;
+            background: #f0f0f0;
+            color: #333;
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+		
+		input:focus,
+textarea:focus {
+	outline: none;
+    border: 1px solid #555;
+}
+
+        .header {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: 1px solid #999;
+            background: #e8e8e8;
+            color: #333;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+		
+		.on-modal {
+			background: #f5f5f5;
+		}
+
+        .btn:hover {
+            background: #ddd;
+        }
+
+        .platform {
+            margin-bottom: 16px;
+        }
+
+        .platform-header {
+            background: #e8e8e8;
+            padding: 10px 12px;
+            cursor: pointer;
+			border: 1px solid #ccc;
+            border-radius: 4px;
+            font-weight: 500;
+            user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .platform-header:hover {
+            background: #ddd;
+        }
+
+        .platform-badge {
+            background: #aaa;
+            color: white;
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: normal;
+        }
+
+        .platform-accounts {
+            display: none;
+            margin-top: 8px;
+        }
+
+        .platform.expanded .platform-accounts {
+            display: block;
+        }
+
+        .account {
+            margin-bottom: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .account-row {
+            display: flex;
+            min-height: 32px;
+        }
+
+        .account-label {
+            background: #f6f6f6;
+            padding: 6px 10px;
+            width: 80px;
+            font-size: 12px;
+            color: #666;
+            border-right: 1px solid #ccc;
+            display: flex;
+            align-items: center;
+        }
+
+        .account-value {
+            padding: 6px 10px;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            font-family: monospace;
+            font-size: 13px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 400px;
+            padding: 20px;
+        }
+
+        .json-modal .modal-content {
+            width: 95vw;
+            height: 80vh;
+            max-width: none;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            margin-bottom: 16px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .json-textarea {
+            flex: 1;
+            resize: none;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .modal-divider {
+            height: 1px;
+            background: #ddd;
+            margin: 16px 0;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .btn-primary {
+            background: #333;
+            color: white;
+            border-color: #333;
+        }
+
+        .btn-primary:hover {
+            background: #555;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #333;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #999;
+            padding: 40px 20px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="btn" onclick="openAddModal()">+ Add</button>
+        <button class="btn" onclick="openJSONModal()">JSON</button>
+    </div>
+
+    <div id="platforms-container">
+        <div class="empty-state">No accounts yet. Click "+ Add" to get started.</div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="add-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title">Add Account</div>
+            <div class="form-group">
+                <label class="form-label">Platform</label>
+                <input type="text" id="platform-input" class="form-input" placeholder="e.g., Gmail, GitHub">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Username</label>
+                <input type="text" id="username-input" class="form-input" placeholder="Username or email">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" id="password-input" class="form-input" placeholder="Password">
+            </div>
+            <div class="modal-divider"></div>
+            <div class="modal-buttons">
+                <button class="btn" onclick="closeAddModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveAccount()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JSON Modal -->
+    <div id="json-modal" class="modal json-modal">
+        <div class="modal-content">
+            <div class="modal-title">Edit JSON</div>
+            <textarea id="json-textarea" class="form-input json-textarea" placeholder="Enter JSON data..."></textarea>
+            <div class="modal-divider"></div>
+            <div class="modal-buttons">
+                <button class="btn on-modal" onclick="closeJSONModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveJSON()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast">Rendering...</div>
+
+    <script>
+        // localStorage-based storage with fallback
+        let accounts = {};
+
+        function loadAccounts() {
+            try {
+                const stored = localStorage.getItem('accounts');
+                if (stored) {
+                    accounts = JSON.parse(stored);
+                }
+            } catch (e) {
+                console.warn('localStorage not available, using in-memory storage');
+            }
+            return accounts;
+        }
+
+        function saveAccounts(data) {
+            accounts = data;
+            try {
+                localStorage.setItem('accounts', JSON.stringify(data));
+            } catch (e) {
+                console.warn('localStorage not available, data will not persist');
+            }
+        }
+
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 1500);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function renderPlatforms() {
+            const container = document.getElementById('platforms-container');
+            const data = loadAccounts();
+            
+            if (Object.keys(data).length === 0) {
+                container.innerHTML = '<div class="empty-state">No accounts yet. Click "+ Add" to get started.</div>';
+                return;
+            }
+
+            let html = '';
+            for (const [platform, platformAccounts] of Object.entries(data)) {
+                const count = platformAccounts.length;
+                const safePlatform = escapeHtml(platform);
+                html += `
+                    <div class="platform" data-platform="${safePlatform}">
+                        <div class="platform-header" onclick="togglePlatform('${safePlatform.replace(/'/g, "\\'")}')">
+                            <span>${safePlatform}</span>
+                            <span class="platform-badge">${count}</span>
+                        </div>
+                        <div class="platform-accounts">
+                            ${platformAccounts.map(account => `
+                                <div class="account">
+                                    <div class="account-row">
+                                        <div class="account-label">Username</div>
+                                        <div class="account-value">${escapeHtml(account.username)}</div>
+                                    </div>
+                                    <div class="account-row">
+                                        <div class="account-label">Password</div>
+                                        <div class="account-value">${escapeHtml(account.password)}</div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+        }
+
+        function togglePlatform(platform) {
+            const element = document.querySelector(`[data-platform="${platform}"]`);
+            element.classList.toggle('expanded');
+        }
+
+        function openAddModal() {
+            document.getElementById('add-modal').classList.add('show');
+            document.getElementById('platform-input').focus();
+        }
+
+        function closeAddModal() {
+            document.getElementById('add-modal').classList.remove('show');
+            // Clear form
+            document.getElementById('platform-input').value = '';
+            document.getElementById('username-input').value = '';
+            document.getElementById('password-input').value = '';
+        }
+
+        function saveAccount() {
+            const platform = document.getElementById('platform-input').value.trim();
+            const username = document.getElementById('username-input').value.trim();
+            const password = document.getElementById('password-input').value.trim();
+
+            if (!platform || !username || !password) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            const data = loadAccounts();
+            if (!data[platform]) {
+                data[platform] = [];
+            }
+            
+            data[platform].push({ username, password });
+            saveAccounts(data);
+            
+            closeAddModal();
+            renderPlatforms();
+            showToast();
+        }
+
+        function openJSONModal() {
+            const data = loadAccounts();
+            const compressed = convertToCompressed(data);
+            document.getElementById('json-textarea').value = JSON.stringify(compressed, null, 2);
+            document.getElementById('json-modal').classList.add('show');
+        }
+
+        function closeJSONModal() {
+            document.getElementById('json-modal').classList.remove('show');
+        }
+
+        function convertToCompressed(data) {
+            const compressed = {};
+            for (const [platform, accounts] of Object.entries(data)) {
+                compressed[platform] = accounts.map(acc => ({
+                    [acc.username]: acc.password
+                }));
+            }
+            return compressed;
+        }
+
+        function convertFromCompressed(compressed) {
+            const expanded = {};
+            for (const [platform, accounts] of Object.entries(compressed)) {
+                expanded[platform] = accounts.map(acc => {
+                    const [username, password] = Object.entries(acc)[0];
+                    return { username, password };
+                });
+            }
+            return expanded;
+        }
+
+        function saveJSON() {
+            const jsonText = document.getElementById('json-textarea').value.trim();
+            
+            try {
+                const compressed = JSON.parse(jsonText);
+                const expanded = convertFromCompressed(compressed);
+                saveAccounts(expanded);
+                
+                closeJSONModal();
+                renderPlatforms();
+                showToast();
+            } catch (error) {
+                alert('Invalid JSON format. Please check your syntax.');
+            }
+        }
+
+        // Close modals when clicking outside
+        document.getElementById('add-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeAddModal();
+        });
+
+        document.getElementById('json-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeJSONModal();
+        });
+
+        // Handle Enter key in add modal
+        document.getElementById('add-modal').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
+                saveAccount();
+            }
+        });
+
+        // Initial render
+        loadAccounts();
+        renderPlatforms();
+    </script>
+</body>
+</html>
