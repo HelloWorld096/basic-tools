@@ -403,6 +403,36 @@
       window.open(pgnToShareChessUrl(outputTextarea.value), '_blank');
     });
 
+    // === Create and inject "Open in Chess.com" button ===
+const openChessComBtn = document.createElement('button');
+openChessComBtn.textContent = 'Open in Chess.com';
+openChessComBtn.id = 'openChessComBtn';
+openChessComBtn.disabled = true;
+openChessComBtn.style.marginLeft = '0.5em';
+openShareBtn.insertAdjacentElement('afterend', openChessComBtn);
+
+// === Toggle based on PGN output ===
+function toggleAllOpenButtons() {
+  const isEmpty = outputTextarea.value.trim() === '';
+  openShareBtn.disabled = isEmpty;
+  openChessComBtn.disabled = isEmpty;
+}
+
+// Attach to existing listeners
+outputTextarea.addEventListener('input', toggleAllOpenButtons);
+simplifyBtn.addEventListener('click', toggleAllOpenButtons);
+
+// === Open in Chess.com handler ===
+openChessComBtn.addEventListener('click', () => {
+  if (outputTextarea.value.trim() === '') return;
+
+  const pgn = outputTextarea.value.trim();
+  const encoded = encodeURIComponent(pgn);
+  const url = `https://www.chess.com/analysis?tab=analysis&pgn=${encoded}`;
+  window.open(url, '_blank');
+});
+
+
     // … other handlers …
   });
 </script>
