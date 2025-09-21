@@ -42,6 +42,11 @@
       background-color: #fff;
       border: 1px solid #bbb;
       border-radius: 2px;
+      height: 3em;
+      width: 3em;
+      margin: 0 5px;
+      padding: 5px 10px;
+      cursor: pointer;
     }
     .header button, .menu-button {
       height: 3em;
@@ -174,12 +179,12 @@
 <body>
   <div class="header">
     <button id="newEntryBtn">+</button>
-    <input type="text" id="EntryTitle" placeholder="Enter Entry title" />
+    <input type="text" id="EntryTitle" placeholder="Enter Note title" />
     <button id="saveEntryBtn">Save</button>
     <button class="menu-button" id="toggleMenuBtn">&#9776;</button>
   </div>
   
-  <textarea id="EntryContent" placeholder="Write Entry content here"></textarea>
+  <textarea id="EntryContent" placeholder="Write Note here"></textarea>
 
   <!-- Menu Overlay -->
   <div class="menu" id="EntryMenu">
@@ -313,7 +318,7 @@
 
       itemDiv.querySelector('.delete-individual').addEventListener("click", async (e) => {
         e.stopPropagation();
-        if (confirm("Delete this entry?")) {
+        if (confirm("Delete this note?")) {
           await deleteEntryById(entry.id);
           if (currentEntryId === entry.id) {
             currentEntryId = null;
@@ -364,7 +369,7 @@
     }
 
     async function deleteAllEntries() {
-      if (confirm("Delete all entries?")) {
+      if (confirm("Delete all notes?")) {
         await clearEntries();
         currentEntryId = null;
         EntryTitle.value = "";
