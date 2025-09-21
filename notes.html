@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>|| Notes</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=delete" />
+
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+    }
+    .header, .mheader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      background-color: #f0f0f0;
+      padding: 0 10px;
+      border-bottom: 1px solid #ccc;
+    }
+    h2 {
+      padding-left: 0.5em;
+      margin-left: 0.1em;
+      font-size: 1.5em;
+      letter-spacing: 0.02em;
+      border-left: 0.1em solid;
+    }
+    .mheader {
+      background-color: #fff;
+      border: none;
+    }
+    #toggleMenuBtnClose {
+      background-color: #fff;
+      border: 1px solid #bbb;
+      border-radius: 2px;
+    }
+    .header button, .menu-button {
+      height: 3em;
+      width: 3em;
+      margin: 0 5px;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+    #saveEntryBtn {
+      width: 4em;
+    }
+    .header input {
+      flex: 1;
+      height: 2.7em;
+      margin: 0 5px;
+      padding: 0 0.6em;
+      cursor: pointer;
+    }
+    #EntryContent {
+      padding: 20px;
+      border: none;
+      width: 100%;
+      height: calc(100vh - 70px);
+      box-sizing: border-box;
+      resize: none;
+      font-size: 1em;
+      font-family: "DM Sans", sans-serif;
+    }
+    .menu {
+      position: fixed;
+      top: 0;
+      right: -80%;
+      width: 80%;
+      height: 100%;
+      background-color: #ffffff;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+      z-index: 10;
+      transition: right 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+    .menu.open {
+      right: 0;
+    }
+    .menu-item {
+      padding: 10px;
+      cursor: pointer;
+      background-color: #f5f5f5;
+      margin-bottom: 5px;
+      border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.2s ease;
+    }
+    .menu-item:hover {
+      background-color: #e0e0e0;
+    }
+    .menu-item.selected {
+      border: 1px solid #e0e0e0;
+      border-left: 3px solid #888;
+      background-color: #fafafa;
+    }
+    .menu-item span {
+      word-break: break-word;
+      white-space: normal;
+      flex: 1;
+      margin-right: 10px;
+    }
+    #EntryList {
+      padding: 10px;
+      overflow-y: auto;
+      flex: 1;
+      box-sizing: border-box;
+    }
+    .menubottom {
+      padding: 0.8em;
+    }
+    .settings {
+      padding: 10px;
+      background-color: #f5f5f5;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+    .settings div {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 10px 0;
+    }
+    .settings input,
+    #toggleWordWrap {
+      width: 5em;
+      margin-left: auto;
+      text-align: center;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.3em;
+      box-sizing: border-box;
+    }
+    .delete-button {
+      height: 3em;
+      width: 100%;
+      background-color: #f03949;
+      border: 1px solid #f00;
+      border-radius: 5px;
+      color: #fff;
+      padding: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+      text-align: center;
+    }
+    .delete-individual {
+      background: none;
+      border: none;
+      color: #f03949;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      margin: 0;
+    }
+    .delete-individual .material-symbols-outlined {
+      font-size: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <button id="newEntryBtn">+</button>
+    <input type="text" id="EntryTitle" placeholder="Enter Entry title" />
+    <button id="saveEntryBtn">Save</button>
+    <button class="menu-button" id="toggleMenuBtn">&#9776;</button>
+  </div>
+  
+  <textarea id="EntryContent" placeholder="Write Entry content here"></textarea>
+
+  <!-- Menu Overlay -->
+  <div class="menu" id="EntryMenu">
+    <div class="mheader">
+      <h2>Entries</h2>
+      <button class="menu-button" id="toggleMenuBtnClose">&#9776;</button>
+    </div>
+    <div id="EntryList"></div>
+    <div class="menubottom">
+      <div class="settings">
+        <div>
+          Word Wrap: <button id="toggleWordWrap">ON</button>
+        </div>
+        <div>
+          Font Size: <input type="number" id="fontSize" value="16" min="10" max="30" step="1">
+        </div>
+        <div>
+          Line Spacing: <input type="number" id="lineSpacing" value="1" min="1" max="3" step="0.1">
+        </div>
+        <div>
+          Character Spacing: <input type="number" id="charSpacing" value="1" min="0" max="5" step="0.1">
+        </div>
+      </div>
+      <button id="deleteAllBtn" class="delete-button">Delete All</button>
+    </div>
+  </div>
+
+  <script>
+    let db;
+    let currentEntryId = null;
+
+    const EntryContent = document.getElementById('EntryContent');
+    const EntryTitle = document.getElementById('EntryTitle');
+    const EntryList = document.getElementById('EntryList');
+    const EntryMenu = document.getElementById('EntryMenu');
+    const toggleMenuBtn = document.getElementById('toggleMenuBtn');
+    const toggleMenuBtnClose = document.getElementById('toggleMenuBtnClose');
+    const saveEntryBtn = document.getElementById('saveEntryBtn');
+    const deleteAllBtn = document.getElementById('deleteAllBtn');
+    const newEntryBtn = document.getElementById('newEntryBtn');
+
+    // Settings elements
+    const toggleWordWrap = document.getElementById('toggleWordWrap');
+    const fontSizeInput = document.getElementById('fontSize');
+    const lineSpacingInput = document.getElementById('lineSpacing');
+    const charSpacingInput = document.getElementById('charSpacing');
+
+    // IndexedDB Helpers (Promise-based)
+    function openDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open("NotesDB", 1);
+        request.onupgradeneeded = (event) => {
+          const db = event.target.result;
+          const store = db.createObjectStore("entries", { keyPath: "id", autoIncrement: true });
+          store.createIndex("date", "date", { unique: false });
+        };
+        request.onsuccess = (event) => resolve(event.target.result);
+        request.onerror = (event) => reject(event.target.error);
+      });
+    }
+
+    function dbTransaction(mode) {
+      return db.transaction("entries", mode).objectStore("entries");
+    }
+
+    async function getAllEntries() {
+      return new Promise((resolve, reject) => {
+        const store = dbTransaction("readonly").index("date");
+        const req = store.getAll();
+        req.onsuccess = () => resolve(req.result.sort((a, b) => new Date(b.date) - new Date(a.date)));
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function getEntry(id) {
+      return new Promise((resolve, reject) => {
+        const req = dbTransaction("readonly").get(id);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function addEntry(entry) {
+      return new Promise((resolve, reject) => {
+        const req = dbTransaction("readwrite").add(entry);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function updateEntry(entry) {
+      return new Promise((resolve, reject) => {
+        const req = dbTransaction("readwrite").put(entry);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function deleteEntryById(id) {
+      return new Promise((resolve, reject) => {
+        const req = dbTransaction("readwrite").delete(id);
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function clearEntries() {
+      return new Promise((resolve, reject) => {
+        const req = dbTransaction("readwrite").clear();
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    // UI Functions
+    function createEntryItem(entry) {
+      const itemDiv = document.createElement('div');
+      itemDiv.className = 'menu-item';
+      if (currentEntryId === entry.id) itemDiv.classList.add("selected");
+
+      itemDiv.innerHTML = `
+        <span>${entry.title}</span>
+        <button class="delete-individual" data-id="${entry.id}">
+          <span class="material-symbols-outlined">delete</span>
+        </button>
+      `;
+
+      itemDiv.addEventListener("click", (e) => {
+        if (!e.target.closest('.delete-individual')) openEntry(entry.id);
+      });
+
+      itemDiv.querySelector('.delete-individual').addEventListener("click", async (e) => {
+        e.stopPropagation();
+        if (confirm("Delete this entry?")) {
+          await deleteEntryById(entry.id);
+          if (currentEntryId === entry.id) {
+            currentEntryId = null;
+            EntryTitle.value = "";
+            EntryContent.value = "";
+          }
+          loadEntries();
+        }
+      });
+      return itemDiv;
+    }
+
+    async function loadEntries() {
+      const entries = await getAllEntries();
+      const fragment = document.createDocumentFragment();
+      entries.forEach(entry => fragment.appendChild(createEntryItem(entry)));
+      EntryList.innerHTML = "";
+      EntryList.appendChild(fragment);
+    }
+
+    async function saveEntry() {
+      if (!EntryTitle.value.trim()) {
+        alert("Please enter a title for the Entry.");
+        return;
+      }
+      const entry = {
+        title: EntryTitle.value.trim(),
+        content: EntryContent.value,
+        date: new Date().toISOString()
+      };
+      if (currentEntryId === null) {
+        currentEntryId = await addEntry(entry);
+      } else {
+        entry.id = currentEntryId;
+        await updateEntry(entry);
+      }
+      loadEntries();
+    }
+
+    async function openEntry(id) {
+      const entry = await getEntry(id);
+      if (entry) {
+        currentEntryId = entry.id;
+        EntryTitle.value = entry.title;
+        EntryContent.value = entry.content;
+        loadEntries();
+      }
+    }
+
+    async function deleteAllEntries() {
+      if (confirm("Delete all entries?")) {
+        await clearEntries();
+        currentEntryId = null;
+        EntryTitle.value = "";
+        EntryContent.value = "";
+        loadEntries();
+      }
+    }
+
+    // Settings
+    function loadSettings() {
+      const settings = JSON.parse(localStorage.getItem("editorSettings")) || {
+        wordWrap: true,
+        fontSize: 16,
+        lineSpacing: 1,
+        charSpacing: 1
+      };
+      applySettings(settings);
+      toggleWordWrap.textContent = settings.wordWrap ? "ON" : "OFF";
+      fontSizeInput.value = settings.fontSize;
+      lineSpacingInput.value = settings.lineSpacing;
+      charSpacingInput.value = settings.charSpacing;
+    }
+
+    function saveSettings() {
+      const settings = {
+        wordWrap: toggleWordWrap.textContent === "ON",
+        fontSize: parseFloat(fontSizeInput.value),
+        lineSpacing: parseFloat(lineSpacingInput.value),
+        charSpacing: parseFloat(charSpacingInput.value)
+      };
+      localStorage.setItem("editorSettings", JSON.stringify(settings));
+      applySettings(settings);
+    }
+
+    function applySettings(settings) {
+      EntryContent.style.whiteSpace = settings.wordWrap ? "pre-wrap" : "pre";
+      EntryContent.style.fontSize = settings.fontSize + "px";
+      EntryContent.style.lineHeight = settings.lineSpacing;
+      EntryContent.style.letterSpacing = settings.charSpacing + "px";
+    }
+
+    // Event Listeners
+    newEntryBtn.addEventListener("click", () => {
+      currentEntryId = null;
+      EntryTitle.value = "";
+      EntryContent.value = "";
+      loadEntries();
+    });
+    saveEntryBtn.addEventListener("click", saveEntry);
+    deleteAllBtn.addEventListener("click", deleteAllEntries);
+    toggleMenuBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      EntryMenu.classList.add("open");
+    });
+    toggleMenuBtnClose.addEventListener("click", (e) => {
+      e.stopPropagation();
+      EntryMenu.classList.remove("open");
+    });
+    toggleWordWrap.addEventListener("click", () => {
+      toggleWordWrap.textContent = toggleWordWrap.textContent === "ON" ? "OFF" : "ON";
+      saveSettings();
+    });
+    fontSizeInput.addEventListener("change", saveSettings);
+    lineSpacingInput.addEventListener("change", saveSettings);
+    charSpacingInput.addEventListener("change", saveSettings);
+
+    document.addEventListener("click", (e) => {
+      if (EntryMenu.classList.contains("open") &&
+          !EntryMenu.contains(e.target) &&
+          !e.target.closest("#toggleMenuBtn")) {
+        EntryMenu.classList.remove("open");
+      }
+    });
+    EntryMenu.addEventListener("click", (e) => e.stopPropagation());
+
+    // Init
+    (async () => {
+      db = await openDB();
+      await loadEntries();
+      loadSettings();
+    })();
+  </script>
+</body>
+</html>
