@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Advanced LaTeX to SVG</title>
+
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']],
+    displayMath: [['$$', '$$']]
+  },
+  svg: { fontCache: 'none' }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+<style>
+  :root {
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --text: #1e293b;
+  }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 20px;
+  }
+
+  .container {
+    max-width: 1000px;
+    margin: auto;
+    background: var(--card);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  }
+
+  h3 { margin-top: 0; color: #0f172a; }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  @media (min-width: 768px) {
+    .layout { grid-template-columns: 1fr 300px; }
+  }
+
+  textarea {
+    width: 100%;
+    height: 250px;
+    padding: 15px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-family: 'Fira Code', monospace;
+    font-size: 14px;
+    resize: vertical;
+    box-sizing: border-box;
+  }
+
+  .controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    background: #f1f5f9;
+    padding: 20px;
+    border-radius: 8px;
+  }
+
+  .control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748b;
+  }
+
+  input[type="color"] {
+    width: 100%;
+    height: 40px;
+    border: none;
+    cursor: pointer;
+    background: none;
+  }
+
+  .button-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  button {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-preview { background: var(--primary); color: white; }
+  .btn-preview:hover { background: var(--primary-hover); }
+  
+  .btn-export { background: #10b981; color: white; }
+  .btn-export:hover { background: #059669; }
+
+  .output-label {
+    margin-top: 30px;
+    font-weight: bold;
+    display: block;
+  }
+
+  .output {
+    margin-top: 10px;
+    padding: 20px;
+    border: 2px dashed #e2e8f0;
+    border-radius: 8px;
+    min-height: 100px;
+    text-align: center;
+    overflow-x: auto;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h3>LaTeX to SVG</h3>
+  
+  <div class="layout">
+    <textarea id="input" placeholder="Enter LaTeX here...">
+$$x_c = x - \frac{y'[1 + (y')^2]}{y''}$$
+$$y_c = y + \frac{1 + (y')^2}{y''}$$
+    </textarea>
+
+    <div class="controls">
+      <div class="control-group">
+        <label>Text Color</label>
+        <input type="color" id="textColor" value="#000000">
+      </div>
+      
+      <div class="control-group">
+        <label>Background Color</label>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <input type="color" id="bgColor" value="#ffffff">
+          <label style="font-weight:normal;"><input type="checkbox" id="transparentBg" checked> Transparent</label>
+        </div>
+      </div>
+
+      <p style="font-size: 11px; color: #94a3b8;">Transparent ignores the BG color picker during export.</p>
+    </div>
+  </div>
+
+  <div class="button-group">
+    <button class="btn-preview" onclick="render()">Update Preview</button>
+    <button class="btn-export" onclick="exportSVGs()">Download All SVGs</button>
+  </div>
+
+  <span class="output-label">Live Preview:</span>
+  <div id="output" class="output"></div>
+</div>
+
+<script>
+function render() {
+  const output = document.getElementById('output');
+  const txtColor = document.getElementById('textColor').value;
+  const isTransparent = document.getElementById('transparentBg').checked;
+  const bgColor = document.getElementById('bgColor').value;
+
+  // Set preview styles
+  output.style.color = txtColor;
+  output.style.backgroundColor = isTransparent ? 'transparent' : bgColor;
+  
+  const content = document.getElementById('input').value.replace(/\n/g, '<br>');
+  output.innerHTML = content;
+  
+  MathJax.typesetPromise([output]);
+}
+
+function exportSVGs() {
+  const containers = document.querySelectorAll('#output mjx-container');
+  const txtColor = document.getElementById('textColor').value;
+  const isTransparent = document.getElementById('transparentBg').checked;
+  const bgColor = document.getElementById('bgColor').value;
+
+  if (!containers.length) return alert('Preview something first!');
+
+  containers.forEach((container, i) => {
+    const svg = container.querySelector('svg');
+    if (!svg) return;
+
+    // 1. Clone and Setup
+    const clone = svg.cloneNode(true);
+    clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    clone.style.color = txtColor;
+
+    let finalSvgString = '';
+
+    // 2. Wrap with Background if not transparent
+    if (!isTransparent) {
+      const width = svg.getAttribute('width');
+      const height = svg.getAttribute('height');
+      const vBox = svg.getAttribute('viewBox');
+      
+      const wrapper = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      wrapper.setAttribute('width', width);
+      wrapper.setAttribute('height', height);
+      wrapper.setAttribute('viewBox', vBox);
+      wrapper.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+
+      const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      rect.setAttribute('width', '100%');
+      rect.setAttribute('height', '100%');
+      rect.setAttribute('fill', bgColor);
+      
+      wrapper.appendChild(rect);
+      wrapper.appendChild(clone);
+      finalSvgString = new XMLSerializer().serializeToString(wrapper);
+    } else {
+      finalSvgString = new XMLSerializer().serializeToString(clone);
+    }
+
+    // --- MOBILE COMPATIBILITY FIX: BASE64 DATA URI ---
+    
+    // Convert to UTF-8 safe Base64
+    const header = '<?xml version="1.0" encoding="UTF-8"?>\n';
+    const base64Data = window.btoa(unescape(encodeURIComponent(header + finalSvgString)));
+    const dataUri = 'data:image/svg+xml;base64,' + base64Data;
+
+    // Create link and append to body (Crucial for Mobile)
+    const a = document.createElement('a');
+    a.href = dataUri;
+    a.download = `equation_${i + 1}.svg`;
+    document.body.appendChild(a); 
+    
+    // Trigger download
+    a.click();
+    
+    // Cleanup link from DOM
+    setTimeout(() => {
+      document.body.removeChild(a);
+    }, 100);
+  });
+}
+
+// Initial Run
+render();
+</script>
+
+</body>
+</html>
