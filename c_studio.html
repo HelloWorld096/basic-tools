@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C-Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+    
+    :root { --bg: #ffffff; --border: #ddd; --accent: #007acc; --text: #222; }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #0e0e0e; --border: #252525; --accent: #00d4ff; --text: #d4d4d4; }
+    }
+
+    body { background: var(--bg); color: var(--text); font-family: 'JetBrains Mono', monospace; }
+
+    /* --- RIGOROUS SYNTAX HIGHLIGHTING --- */
+    .CodeMirror { height: 100% !important; background: transparent !important; font-size: 14px; }
+    .CodeMirror-gutters { background: transparent; border-right: 1px solid var(--border); width: 40px; }
+    
+    /* Dark Mode Tokens */
+    @media (prefers-color-scheme: dark) {
+      .cm-keyword { color: #c678dd !important; }      /* int, return */
+      .cm-meta { color: #e06c75 !important; }         /* #include */
+      .cm-header { color: #98c379 !important; }       /* <stdio.h> */
+      .cm-string { color: #98c379 !important; }       /* "text" */
+      .cm-string-2 { color: #d19a66 !important; font-weight: bold; } /* \n, \t */
+      .cm-def { color: #61afef !important; }          /* main */
+      .cm-number { color: #d19a66 !important; }
+      .cm-operator { color: #56b6c2 !important; }
+      .CodeMirror-matchingbracket { background: #333 !important; color: #fff !important; outline: 1px solid var(--accent); }
+    }
+
+    /* Light Mode Tokens */
+    @media (prefers-color-scheme: light) {
+      .cm-keyword { color: #0000ff !important; }
+      .cm-meta { color: #a31515 !important; }
+      .cm-header { color: #0451a5 !important; }
+      .cm-string { color: #a31515 !important; }
+      .cm-string-2 { color: #ff0000 !important; font-weight: bold; }
+      .cm-def { color: #000000 !important; font-weight: bold; }
+      .CodeMirror-matchingbracket { background: #edeef0 !important; outline: 1px solid #007acc; }
+    }
+
+    /* Tab Layout */
+    .tab { border-right: 1px solid var(--border); transition: 0.1s; }
+    .active-tab { background: var(--bg); color: var(--accent); border-bottom: 2px solid var(--accent); }
+    
+    /* 5px Fixed Resizer */
+    #resizer { cursor: row-resize; background: var(--border); }
+    #resizer:hover, .resizing #resizer { background: var(--accent); }
+    .resizing { cursor: row-resize; user-select: none; }
+  </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden text-xs">
+
+  <header class="flex items-center justify-between px-4 h-10 border-b border-[var(--border)] shrink-0 bg-[var(--bg)]">
+    <div class="flex items-center gap-6">
+      <span class="font-bold tracking-tighter text-sm">C-STUDIO</span>
+      <div class="flex gap-4 font-bold">
+        <button onclick="saveFile()" class="hover:text-[var(--accent)]">SAVE</button>
+        <button onclick="runCode()" class="text-emerald-500">RUN</button>
+        <button onclick="toggleModal('settingsModal')" class="hover:text-[var(--accent)]">CONFIG</button>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <div id="dot" class="w-2 h-2 rounded-full bg-zinc-800"></div>
+      <span id="statusTxt" class="text-[9px] uppercase font-bold opacity-40">Offline</span>
+    </div>
+  </header>
+
+  <div class="flex bg-[var(--bg)] border-b border-[var(--border)] shrink-0">
+    <button onclick="addTab()" class="px-5 py-2 bg-zinc-100 dark:bg-zinc-900 border-r border-[var(--border)] hover:text-[var(--accent)] transition font-bold text-lg">+</button>
+    <div class="flex overflow-x-auto no-scrollbar" id="tabBar"></div>
+  </div>
+
+  <div id="workspace" class="flex-1 flex flex-col overflow-hidden">
+    <div id="editor-container" class="relative" style="height: 70%;">
+      <textarea id="code"></textarea>
+    </div>
+
+    <div id="resizer" class="h-[5px] shrink-0"></div>
+
+    <div id="console-container" class="flex-1 bg-[var(--bg)] flex flex-col overflow-hidden">
+      <div class="px-4 py-1 flex justify-between border-b border-[var(--border)] shrink-0">
+        <span class="text-[9px] uppercase font-bold opacity-30">Console</span>
+        <button onclick="document.getElementById('console').innerText=''" class="text-[9px] hover:underline">Clear</button>
+      </div>
+      <pre id="console" class="flex-1 p-4 font-mono text-[12px] overflow-auto leading-tight opacity-80"></pre>
+    </div>
+  </div>
+
+  <div id="settingsModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4">
+    <div class="bg-[var(--bg)] border border-[var(--border)] p-6 w-full max-w-xs shadow-xl">
+      <h2 class="font-bold mb-4 uppercase text-[10px]">Environment</h2>
+      <input id="endpoint" type="text" placeholder="Endpoint (e.g. http://localhost:5000)" class="w-full bg-transparent border border-[var(--border)] p-2 outline-none focus:border-[var(--accent)] mb-3">
+      <input id="path" type="text" placeholder="Project Root" class="w-full bg-transparent border border-[var(--border)] p-2 outline-none focus:border-[var(--accent)] mb-6">
+      <div class="flex gap-2">
+        <button onclick="saveSettings()" class="flex-1 bg-[var(--accent)] text-white font-bold py-2 uppercase">Apply</button>
+        <button onclick="toggleModal('settingsModal')" class="flex-1 border border-[var(--border)] py-2 uppercase">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+
+  <script>
+    let tabs = JSON.parse(localStorage.getItem("tabs") || "[]"); // Now only stores [{name: "file.c"}]
+    let activeIndex = Number(localStorage.getItem("activeTab") || 0);
+
+    const cm = CodeMirror.fromTextArea(document.getElementById("code"), {
+      mode: "text/x-csrc",
+      lineNumbers: true,
+      autoCloseBrackets: true,
+      matchBrackets: true,
+      indentUnit: 4,
+      theme: "default"
+    });
+
+    // --- Resizer Logic (Kept Same) ---
+    const resizer = document.getElementById('resizer');
+    const editorCont = document.getElementById('editor-container');
+    const workspace = document.getElementById('workspace');
+
+    resizer.addEventListener('mousedown', (e) => {
+      document.body.classList.add('resizing');
+      const startY = e.clientY;
+      const startHeight = editorCont.offsetHeight;
+      const onMouseMove = (e) => {
+        const delta = e.clientY - startY;
+        const newPct = ((startHeight + delta) / workspace.offsetHeight) * 100;
+        if (newPct > 10 && newPct < 90) {
+          editorCont.style.height = `${newPct}%`;
+          cm.refresh();
+        }
+      };
+      const onMouseUp = () => {
+        document.body.classList.remove('resizing');
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+      };
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    });
+
+    // --- API Core ---
+    async function api(route, data) {
+      const endpoint = localStorage.getItem("endpoint");
+      if (!endpoint) return { error: "No Config" };
+      try {
+        const r = await fetch(`${endpoint}/${route}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+        return await r.json();
+      } catch (e) { return { error: "Server Down" }; }
+    }
+
+    // --- Enhanced File Logic ---
+    async function saveFile() {
+      if (!tabs[activeIndex]) return;
+      const code = cm.getValue();
+      return await api("save", { 
+        file: tabs[activeIndex].name, 
+        code: code, 
+        path: localStorage.getItem("path") 
+      });
+    }
+
+    async function runCode() {
+      if (!tabs.length) return;
+      document.getElementById("console").innerText = "> Building...";
+      await saveFile();
+      const res = await api("run", { file: tabs[activeIndex].name, path: localStorage.getItem("path") });
+      document.getElementById("console").innerText = res.error || res.output;
+    }
+
+    async function setTab(i) {
+      activeIndex = i;
+      localStorage.setItem("activeTab", activeIndex);
+      render();
+
+      const fileName = tabs[i].name;
+      cm.setOption("readOnly", true); // Lock while loading
+      
+      const res = await api("get", { file: fileName, path: localStorage.getItem("path") });
+      
+      if (res && res.code !== undefined) {
+        cm.setValue(res.code);
+      } else {
+        cm.setValue("// Error: Could not fetch file from server");
+      }
+      cm.setOption("readOnly", false);
+    }
+
+    function render() {
+      const bar = document.getElementById("tabBar");
+      bar.innerHTML = tabs.map((t, i) => `
+        <div onclick="setTab(${i})" class="tab flex items-center px-4 py-2 cursor-pointer whitespace-nowrap ${i === activeIndex ? 'active-tab' : 'opacity-40'}">
+          ${t.name} <span onclick="closeTab(${i}, event)" class="ml-3 hover:text-red-500">×</span>
+        </div>
+      `).join('');
+    }
+
+    async function addTab() {
+      const n = prompt("File name (e.g. main.c):");
+      if(!n) return;
+      
+      // Add to local list (names only)
+      tabs.push({ name: n });
+      localStorage.setItem("tabs", JSON.stringify(tabs));
+      
+      // Initialize on server with template
+      const template = "#include <stdio.h>\n\nint main() {\n    printf(\"Hello World\\n\");\n    return 0;\n}";
+      await api("save", { file: n, code: template, path: localStorage.getItem("path") });
+      
+      setTab(tabs.length - 1);
+    }
+
+    function closeTab(i, e) {
+      e.stopPropagation();
+      tabs.splice(i, 1);
+      localStorage.setItem("tabs", JSON.stringify(tabs));
+      activeIndex = Math.max(0, tabs.length - 1);
+      
+      if(tabs.length) setTab(activeIndex);
+      else {
+          cm.setValue("");
+          render();
+      }
+    }
+
+    // --- Settings & Conn ---
+    function toggleModal(id) {
+      document.getElementById(id).classList.toggle('hidden');
+      document.getElementById(id).classList.toggle('flex');
+    }
+
+    function saveSettings() {
+      localStorage.setItem("endpoint", document.getElementById("endpoint").value.trim());
+      localStorage.setItem("path", document.getElementById("path").value.trim());
+      toggleModal('settingsModal');
+      checkConn();
+    }
+
+    async function checkConn() {
+      const res = await api("ping", {});
+      const online = res && !res.error;
+      document.getElementById("dot").className = `w-2 h-2 rounded-full ${online ? 'bg-emerald-500' : 'bg-red-500'}`;
+      document.getElementById("statusTxt").innerText = online ? "Connected" : "Offline";
+    }
+
+    // Init
+    document.getElementById("endpoint").value = localStorage.getItem("endpoint") || "";
+    document.getElementById("path").value = localStorage.getItem("path") || "";
+    
+    if(tabs.length) {
+        setTab(activeIndex);
+    }
+
+    render();
+    checkConn();
+    setInterval(checkConn, 5000);
+  </script>
+</body>
+</html>
